@@ -195,6 +195,99 @@ class ParticleSystem {
     }
   }
 
+  /**
+   * Spawns electric cyan and gold streaks on EMP blast
+   */
+  fireEmp(x, y) {
+    const palette = ['#00f0ff', '#ffffff', '#ffd700', '#38bdf8'];
+    for (let i = 0; i < 32; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 8 + 3;
+      this.fxParticles.push({
+        x: x || this.width / 2,
+        y: y || this.height / 2,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: Math.random() * 3 + 2,
+        color: palette[Math.floor(Math.random() * palette.length)],
+        alpha: 1,
+        life: 1,
+        decay: Math.random() * 0.035 + 0.025,
+        gravity: 0.08,
+        drag: 0.94,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.3,
+        isStreak: true
+      });
+    }
+    if (!this.isFxRunning) {
+      this.isFxRunning = true;
+      this.animateFx();
+    }
+  }
+
+  /**
+   * Spawns ice crystal diamonds on Cryo Lock
+   */
+  fireCryo(x, y) {
+    const palette = ['#a5f3fc', '#e0f2fe', '#ffffff', '#38bdf8'];
+    for (let i = 0; i < 26; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 5 + 1.5;
+      this.fxParticles.push({
+        x: x || this.width / 2,
+        y: y || this.height / 2,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: Math.random() * 3.5 + 2.5,
+        color: palette[Math.floor(Math.random() * palette.length)],
+        alpha: 1,
+        life: 1,
+        decay: Math.random() * 0.025 + 0.015,
+        gravity: 0.06,
+        drag: 0.96,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.1,
+        isStreak: false
+      });
+    }
+    if (!this.isFxRunning) {
+      this.isFxRunning = true;
+      this.animateFx();
+    }
+  }
+
+  /**
+   * Spawns reactor speed streaks on Overdrive
+   */
+  fireOverdrive(x, y) {
+    const palette = ['#ff007f', '#00f0ff', '#a855f7', '#ffffff'];
+    for (let i = 0; i < 38; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 9 + 4;
+      this.fxParticles.push({
+        x: x || this.width / 2,
+        y: y || this.height / 2,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: Math.random() * 3.5 + 2,
+        color: palette[Math.floor(Math.random() * palette.length)],
+        alpha: 1,
+        life: 1,
+        decay: Math.random() * 0.03 + 0.02,
+        gravity: 0.04,
+        drag: 0.94,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.25,
+        isStreak: true
+      });
+    }
+    if (!this.isFxRunning) {
+      this.isFxRunning = true;
+      this.animateFx();
+    }
+  }
+
   animateFx() {
     if (!this.fxCtx) return;
     this.fxCtx.clearRect(0, 0, this.width, this.height);

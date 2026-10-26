@@ -50,6 +50,11 @@ export const ACHIEVEMENTS_LIST = [
   { id: 'P2P_SIGNAL', icon: '💬', title: 'Шифрованный сигнал', desc: 'Отправьте кибер-реакцию в онлайн-матче' },
   { id: 'P2P_REMATCH', icon: '🔄', title: 'Реваншист', desc: 'Сыграйте онлайн-реванш со сменой сторон' },
 
+  // --- CYBER COMBAT PERKS ---
+  { id: 'EMP_SABOTEUR', icon: '⚡', title: 'ЭМИ-диверсант', desc: 'Уничтожьте метку соперника с помощью EMP-удара' },
+  { id: 'CRYO_LOCK', icon: '❄️', title: 'Абсолютный ноль', desc: 'Заблокируйте тактическую клетку крио-хаком' },
+  { id: 'OVERDRIVE_WIN', icon: '🚀', title: 'Сингулярность', desc: 'Победите в раунде, совершив победный ход с Овердрайвом' },
+
   // --- SYSTEM & CUSTOMIZATION ---
   { id: 'THEME_COLLECTOR', icon: '🎨', title: 'Хроматический спектр', desc: 'Опробуйте все 4 неоновые визуальные темы' },
   { id: 'CRT_NOSTALGIA', icon: '📺', title: 'Ретро-хакер', desc: 'Активируйте аналоговый режим кинескопа CRT FX' },
@@ -93,7 +98,8 @@ const STORAGE_KEYS = {
   ACHIEVEMENTS: 'cyber_xo_achievements',
   XP: 'cyber_xo_xp',
   SKIN_X: 'cyber_xo_skin_x',
-  SKIN_O: 'cyber_xo_skin_o'
+  SKIN_O: 'cyber_xo_skin_o',
+  PERKS: 'cyber_xo_perks'
 };
 
 class GameState {
@@ -115,6 +121,14 @@ class GameState {
     this.xp = this.loadXp();
     this.skinX = localStorage.getItem(STORAGE_KEYS.SKIN_X) || 'classic_x';
     this.skinO = localStorage.getItem(STORAGE_KEYS.SKIN_O) || 'classic_o';
+    this.perksEnabled = localStorage.getItem(STORAGE_KEYS.PERKS) === 'true';
+    this.playerPerks = {
+      X: { emp: 1, cryo: 1, overdrive: 1 },
+      O: { emp: 1, cryo: 1, overdrive: 1 }
+    };
+    this.frozenCells = {};
+    this.overdriveTurnsLeft = 0;
+    this.usedOverdriveThisRound = false;
     this.p2pPlayerSymbol = 'X';
     this.roundMoveCount = 0;
     this.roundDissolveCount = 0;
@@ -640,7 +654,72 @@ class GameState {
     return this.checkAchievements(isWin, isTie, isLoss, extraContext);
   }
 
+  togglePerksEnabled() {
+    this.perksEnabled = !this.perksEnabled;
+    try {
+      localStorage.setItem(STORAGE_KEYS.PERKS, this.perksEnabled ? 'true' : 'false');
+    } catch (e) {}
+    return this.perksEnabled;
+  }
+
+  resetPerks() {
+    this.playerPerks = {
+      X: { emp: 1, cryo: 1, overdrive: 1 },
+      O: { emp: 1, cryo: 1, overdrive: 1 }
+    };
+    this.frozenCells = {};
+    this.overdriveTurnsLeft = 0;
+    this.usedOverdriveThisRound = false;
+  }
+
+  hasPerk(player, perkId) {
+    return !!(this.playerPerks[player] && this.playerPerks[player][perkId] > 0);
+  }
+
+  usePerk(player, perkId) {
+    if (this.hasPerk(player, perkId)) {
+      this.playerPerks[player][perkId]--;
+      return true;
+    }
+    return false;
+  }
+
+  freezeCell(index, turns = 2) {
+    this.frozenCells[index] = turns;
+  }
+
+  isCellFrozen(index) {
+    return (this.frozenCells[index] || 0) > 0;
+  }
+
+  tickFrozenCells() {
+    const unfrozen = [];
+    for (const idx in this.frozenCells) {
+      if (this.frozenCells[idx] > 0) {
+        this.frozenCells[idx]--;
+        if (this.frozenCells[idx] === 0) {
+          delete this.frozenCells[idx];
+          unfrozen.push(parseInt(idx, 10));
+        }
+      }
+    }
+    return unfrozen;
+  }
+
+  removeMark(index) {
+    if (this.board[index] !== null) {
+      const player = this.board[index];
+      this.board[index] = null;
+      if (this.gameType === 'infinity' && this.ghostMoves[player]) {
+        this.ghostMoves[player] = this.ghostMoves[player].filter(i => i !== index);
+      }
+      return player;
+    }
+    return null;
+  }
+
   resetRound() {
+    this.resetPerks();
     const totalCells = this.gridSize * this.gridSize;
     this.board = Array(totalCells).fill(null);
     this.currentPlayer = 'X';

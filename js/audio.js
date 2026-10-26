@@ -630,6 +630,90 @@ class SoundEngine {
   /**
    * Radiant cyber power-up surge for Level Up (Major pentatonic ascent + crystal sweep)
    */
+  /**
+   * Cyber EMP blast discharge
+   */
+  playEmpBlast() {
+    this.vibrate([70, 30, 80]);
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const filter = this.ctx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(1400, t);
+    osc.frequency.exponentialRampToValueAtTime(45, t + 0.35);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(3200, t);
+    filter.frequency.exponentialRampToValueAtTime(120, t + 0.35);
+
+    gain.gain.setValueAtTime(0.5, t);
+    gain.gain.exponentialRampToValueAtTime(0.005, t + 0.35);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.36);
+  }
+
+  /**
+   * Cyber Cryo Lock freezing sound
+   */
+  playCryoLock() {
+    this.vibrate([40, 50, 60]);
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    [1200, 1760, 2400].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.65, t + 0.38);
+
+      gain.gain.setValueAtTime(0.2, t + idx * 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t + idx * 0.03);
+      osc.stop(t + 0.44);
+    });
+  }
+
+  /**
+   * Cyber Overdrive reactor surge sound
+   */
+  playOverdrive() {
+    this.vibrate([50, 40, 100, 120]);
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(180, t);
+    osc.frequency.exponentialRampToValueAtTime(880, t + 0.4);
+
+    gain.gain.setValueAtTime(0.08, t);
+    gain.gain.linearRampToValueAtTime(0.4, t + 0.22);
+    gain.gain.exponentialRampToValueAtTime(0.005, t + 0.45);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.46);
+  }
+
   playLevelUp() {
     this.vibrate([40, 60, 40, 80, 120]);
     if (this.isMuted) return;

@@ -139,6 +139,20 @@ class UIEngine {
     this.p2pReactionsBar = document.getElementById('p2p-reactions-bar');
     this.reactionOverlay = document.getElementById('reaction-overlay');
     this.reactionBtns = Array.from(document.querySelectorAll('.reaction-btn'));
+
+    // Cyber Combat Perks UI Elements
+    this.btnTogglePerks = document.getElementById('btn-toggle-perks');
+    this.perksBar = document.getElementById('perks-bar');
+    this.perksActivePlayer = document.getElementById('perks-active-player');
+    this.perkBtnEmp = document.getElementById('perk-btn-emp');
+    this.perkBtnCryo = document.getElementById('perk-btn-cryo');
+    this.perkBtnOverdrive = document.getElementById('perk-btn-overdrive');
+    this.perkCountEmp = document.getElementById('perk-count-emp');
+    this.perkCountCryo = document.getElementById('perk-count-cryo');
+    this.perkCountOverdrive = document.getElementById('perk-count-overdrive');
+    this.perkTargetingAlert = document.getElementById('perk-targeting-alert');
+    this.perkTargetingText = document.getElementById('perk-targeting-text');
+    this.btnPerkCancel = document.getElementById('btn-perk-cancel');
     this._toastTimer = null;
 
     this.initTilt();
@@ -658,10 +672,18 @@ class UIEngine {
     this.hideModal();
   }
 
+  clearCell(index) {
+    const cell = this.cells[index];
+    if (cell) {
+      cell.innerHTML = '';
+      cell.classList.remove('occupied', 'winning-cell', 'ghost-warning', 'dissolving', 'keyboard-focus');
+    }
+  }
+
   clearBoard() {
     this.cells.forEach(cell => {
       cell.innerHTML = '';
-      cell.classList.remove('occupied', 'winning-cell', 'ghost-warning', 'dissolving');
+      cell.classList.remove('occupied', 'winning-cell', 'ghost-warning', 'dissolving', 'keyboard-focus', 'frozen');
     });
     this.hideStrikeLine();
     this.hideModal();
@@ -1154,6 +1176,71 @@ class UIEngine {
 
   clearKeyboardFocus() {
     this.cells.forEach(cell => cell.classList.remove('keyboard-focus'));
+  }
+
+  updatePerksToggleUI(enabled) {
+    if (this.btnTogglePerks) {
+      this.btnTogglePerks.textContent = enabled ? 'ВКЛ' : 'ВЫКЛ';
+      this.btnTogglePerks.classList.toggle('active', enabled);
+    }
+  }
+
+  updatePerksUI(state) {
+    if (!this.perksBar) return;
+    if (!state.perksEnabled) {
+      this.perksBar.style.display = 'none';
+      return;
+    }
+    this.perksBar.style.display = 'flex';
+
+    const player = state.currentPlayer;
+    if (this.perksActivePlayer) {
+      this.perksActivePlayer.textContent = player;
+      this.perksActivePlayer.style.color = player === 'X' ? 'var(--neon-x)' : 'var(--neon-o)';
+    }
+
+    const perks = state.playerPerks[player] || { emp: 0, cryo: 0, overdrive: 0 };
+
+    if (this.perkCountEmp) this.perkCountEmp.textContent = `${perks.emp}/1`;
+    if (this.perkCountCryo) this.perkCountCryo.textContent = `${perks.cryo}/1`;
+    if (this.perkCountOverdrive) this.perkCountOverdrive.textContent = `${perks.overdrive}/1`;
+
+    if (this.perkBtnEmp) this.perkBtnEmp.classList.toggle('exhausted', perks.emp <= 0);
+    if (this.perkBtnCryo) this.perkBtnCryo.classList.toggle('exhausted', perks.cryo <= 0);
+    if (this.perkBtnOverdrive) this.perkBtnOverdrive.classList.toggle('exhausted', perks.overdrive <= 0);
+  }
+
+  setTargetingMode(perkType, text = '') {
+    if (perkType) {
+      if (this.perkTargetingAlert) {
+        this.perkTargetingAlert.style.display = 'flex';
+        if (this.perkTargetingText) this.perkTargetingText.textContent = text;
+      }
+      if (this.boardContainer) this.boardContainer.classList.add('targeting-mode-active');
+      if (this.perkBtnEmp) this.perkBtnEmp.classList.toggle('targeting-active', perkType === 'emp');
+      if (this.perkBtnCryo) this.perkBtnCryo.classList.toggle('targeting-active', perkType === 'cryo');
+    } else {
+      if (this.perkTargetingAlert) this.perkTargetingAlert.style.display = 'none';
+      if (this.boardContainer) this.boardContainer.classList.remove('targeting-mode-active');
+      if (this.perkBtnEmp) this.perkBtnEmp.classList.remove('targeting-active');
+      if (this.perkBtnCryo) this.perkBtnCryo.classList.remove('targeting-active');
+    }
+  }
+
+  updateFrozenCellsUI(state) {
+    this.cells.forEach((cell, idx) => {
+      const isFrozen = state.isCellFrozen(idx);
+      cell.classList.toggle('frozen', isFrozen);
+      const existingBadge = cell.querySelector('.frozen-ice-badge');
+      if (isFrozen && !existingBadge) {
+        const badge = document.createElement('div');
+        badge.className = 'frozen-ice-badge';
+        badge.textContent = '❄️';
+        cell.appendChild(badge);
+      } else if (!isFrozen && existingBadge) {
+        existingBadge.remove();
+      }
+    });
   }
 }
 

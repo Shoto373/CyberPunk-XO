@@ -2451,3 +2451,244 @@ kbd {
     grid-template-columns: 1fr;
   }
 }
+/* --------------------------------------------------------------------------
+   18. Cyber Combat Perks UI (Menu Toggle & In-Game Controls)
+   -------------------------------------------------------------------------- */
+.perks-toggle-card {
+  width: 100%;
+  background: var(--surface-glass-card);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--card-radius);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(14px);
+}
+
+.perks-toggle-card:hover {
+  border-color: rgba(0, 240, 255, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 240, 255, 0.08);
+}
+
+.perks-toggle-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.perks-toggle-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.perks-toggle-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.perks-toggle-title {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+}
+
+.perks-toggle-desc {
+  font-size: 0.66rem;
+  color: var(--text-secondary);
+}
+
+.perks-toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--pill-radius);
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.perks-toggle-btn:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.perks-toggle-btn.active {
+  background: rgba(0, 240, 255, 0.15);
+  border-color: var(--neon-x);
+  color: var(--neon-x);
+  box-shadow: 0 0 14px var(--neon-x-soft);
+  font-weight: 900;
+}
+
+/* In-Game Perks Bar */
+.perks-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  background: rgba(14, 20, 38, 0.82);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 16px;
+  padding: 8px 12px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: all var(--transition-normal);
+}
+
+.perks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.perks-title {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.perks-hint {
+  font-size: 0.62rem;
+  color: var(--neon-gold);
+  letter-spacing: 0.5px;
+}
+
+.perks-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.perk-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--pill-radius);
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+}
+
+.perk-btn:hover:not(.exhausted) {
+  background: rgba(0, 240, 255, 0.12);
+  border-color: var(--neon-x);
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px var(--neon-x-soft);
+}
+
+.perk-btn:active:not(.exhausted) {
+  transform: scale(0.96);
+}
+
+.perk-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.perk-name {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.perk-count {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--neon-gold);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.perk-btn.targeting-active {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(255, 0, 127, 0.25)) !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 16px var(--neon-x-glow) !important;
+  animation: perk-targeting-pulse 0.8s infinite alternate;
+}
+
+.perk-btn.exhausted {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+}
+
+/* Targeting Mode Banner */
+.perk-targeting-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid var(--neon-x);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: var(--neon-x);
+  letter-spacing: 0.5px;
+  animation: toast-pulse 1s infinite alternate;
+}
+
+.perk-cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.perk-cancel-btn:hover {
+  background: rgba(244, 63, 94, 0.2);
+  border-color: var(--neon-danger);
+  color: var(--neon-danger);
+}
+
+/* Targeting Mode Board Highlight */
+.board-container.targeting-mode-active .board-cell {
+  cursor: crosshair !important;
+}
+
+/* Frozen Cell Styling */
+.board-cell.frozen {
+  background: rgba(14, 165, 233, 0.15) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.4), inset 0 0 12px rgba(56, 189, 248, 0.25) !important;
+  cursor: not-allowed !important;
+}
+
+.frozen-ice-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.8rem;
+  pointer-events: none;
+  animation: freeze-ice-pulse 1.4s infinite ease-in-out;
+  filter: drop-shadow(0 0 10px #38bdf8);
+}

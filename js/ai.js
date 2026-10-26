@@ -29,10 +29,12 @@ export function checkGameState(board) {
   return null;
 }
 
-export function getAvailableMoves(board) {
+export function getAvailableMoves(board, frozenCells = {}) {
   const moves = [];
   for (let i = 0; i < board.length; i++) {
-    if (board[i] === null) moves.push(i);
+    if (board[i] === null && (!frozenCells || !frozenCells[i])) {
+      moves.push(i);
+    }
   }
   return moves;
 }
@@ -284,4 +286,56 @@ export function getAiMove(board, difficulty = 'unbeatable', aiPlayer = 'O', huma
     default:
       return getUnbeatableMove(clone, aiPlayer, humanPlayer, gameType, ghostMoves);
   }
+}
+/**
+ * Evaluates tactical perks for AI (Overdrive, Cryo Lock, EMP Blast)
+ */
+export function getAiPerkAction(state, aiPlayer = 'O', humanPlayer = 'X') {
+  if (!state || !state.perksEnabled) return null;
+  const board = state.board;
+  const combos = getCombosForBoard(board);
+
+  // 1. Can Bot activate Overdrive to win immediately with 2 consecutive moves?
+  if (state.hasPerk(aiPlayer, 'overdrive')) {
+    const available = getAvailableMoves(board, state.frozenCells);
+    for (const m1 of available) {
+      const test1 = [...board];
+      test1[m1] = aiPlayer;
+      if (checkGameState(test1) === aiPlayer) continue; // Single move win already possible
+
+      for (const m2 of available) {
+        if (m1 === m2) continue;
+        const test2 = [...test1];
+        test2[m2] = aiPlayer;
+        if (checkGameState(test2) === aiPlayer) {
+          return { type: 'overdrive' };
+        }
+      }
+    }
+  }
+
+  // 2. Can Bot use Cryo Lock to freeze human's winning spot?
+  if (state.hasPerk(aiPlayer, 'cryo')) {
+    for (const line of combos) {
+      const humanCount = line.filter(idx => board[idx] === humanPlayer).length;
+      const emptyCells = line.filter(idx => board[idx] === null && !state.isCellFrozen(idx));
+      if (humanCount === line.length - 1 && emptyCells.length === 1) {
+        return { type: 'cryo', targetIndex: emptyCells[0] };
+      }
+    }
+  }
+
+  // 3. Can Bot use EMP Blast to eliminate human's threat?
+  if (state.hasPerk(aiPlayer, 'emp')) {
+    for (const line of combos) {
+      const humanCells = line.filter(idx => board[idx] === humanPlayer);
+      const emptyCells = line.filter(idx => board[idx] === null);
+      if (humanCells.length >= 2 && emptyCells.length >= 1) {
+        const target = humanCells.includes(4) ? 4 : humanCells[0];
+        return { type: 'emp', targetIndex: target };
+      }
+    }
+  }
+
+  return null;
 }

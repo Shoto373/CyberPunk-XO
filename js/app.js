@@ -6,7 +6,7 @@
 import { state } from './state.js';
 import { sound } from './audio.js';
 import { particles } from './particles.js';
-import { getAiMove } from './ai.js';
+import { getAiMove, getAiPerkAction } from './ai.js';
 import { ui } from './ui.js';
 import { p2p } from './p2p.js';
 
@@ -15,6 +15,7 @@ class CyberTicTacToe {
     this.blitzInterval = null;
     this.localRematchRequested = false;
     this.remoteRematchRequested = false;
+    this.activePerkTargeting = null;
     this.init();
   }
 
@@ -82,6 +83,7 @@ class CyberTicTacToe {
       ui.setP2PReactionsVisibility(true);
       this.localRematchRequested = false;
       this.remoteRematchRequested = false;
+    this.activePerkTargeting = null;
       ui.setRematchState('idle');
       if (ui.p2pStatusDot) ui.p2pStatusDot.classList.add('connected');
       if (ui.p2pStatusText) ui.p2pStatusText.textContent = `Соперник в сети! Ваша сторона: ${symbol}`;
@@ -128,6 +130,7 @@ class CyberTicTacToe {
     p2p.onDisconnectCallback = () => {
       this.localRematchRequested = false;
       this.remoteRematchRequested = false;
+    this.activePerkTargeting = null;
       ui.setRematchState('idle');
       ui.setP2PReactionsVisibility(false);
       if (ui.p2pStatusDot) ui.p2pStatusDot.classList.remove('connected');
@@ -231,6 +234,30 @@ class CyberTicTacToe {
       });
     }
 
+    // Cyber Combat Perks Toggle in Menu
+    if (ui.btnTogglePerks) {
+      ui.updatePerksToggleUI(state.perksEnabled);
+      ui.btnTogglePerks.addEventListener('click', () => {
+        sound.playClick();
+        const enabled = state.togglePerksEnabled();
+        ui.updatePerksToggleUI(enabled);
+      });
+    }
+
+    // In-Game Perk Buttons
+    if (ui.perkBtnEmp) {
+      ui.perkBtnEmp.addEventListener('click', () => this.togglePerkTargeting('emp'));
+    }
+    if (ui.perkBtnCryo) {
+      ui.perkBtnCryo.addEventListener('click', () => this.togglePerkTargeting('cryo'));
+    }
+    if (ui.perkBtnOverdrive) {
+      ui.perkBtnOverdrive.addEventListener('click', () => this.activateOverdrive());
+    }
+    if (ui.btnPerkCancel) {
+      ui.btnPerkCancel.addEventListener('click', () => this.cancelPerkTargeting());
+    }
+
     // Opponent Switcher (PVP / PVE / P2P)
     if (ui.btnModePvp) {
       ui.btnModePvp.addEventListener('click', () => {
@@ -239,6 +266,7 @@ class CyberTicTacToe {
           p2p.disconnect();
           this.localRematchRequested = false;
           this.remoteRematchRequested = false;
+    this.activePerkTargeting = null;
           ui.setRematchState('idle');
           ui.setP2PReactionsVisibility(false);
           state.setGameMode('pvp');
@@ -255,6 +283,7 @@ class CyberTicTacToe {
           p2p.disconnect();
           this.localRematchRequested = false;
           this.remoteRematchRequested = false;
+    this.activePerkTargeting = null;
           ui.setRematchState('idle');
           ui.setP2PReactionsVisibility(false);
           state.setGameMode('pve');
@@ -506,8 +535,26 @@ class CyberTicTacToe {
         return;
       }
 
-      // Escape: Close all active modals
+      // Perk hotkeys
+      if (e.code === 'KeyZ') {
+        this.togglePerkTargeting('emp');
+        return;
+      }
+      if (e.code === 'KeyX') {
+        this.togglePerkTargeting('cryo');
+        return;
+      }
+      if (e.code === 'KeyV') {
+        this.activateOverdrive();
+        return;
+      }
+
+      // Escape: Close targeting or modals
       if (e.key === 'Escape') {
+        if (this.activePerkTargeting) {
+          this.cancelPerkTargeting();
+          return;
+        }
         ui.hideModal();
         ui.hideStatsModal();
         ui.hideSkinsModal();
@@ -644,6 +691,124 @@ class CyberTicTacToe {
   /**
    * Handles user move on cell click
    */
+  togglePerkTargeting(perk) {
+    if (!state.perksEnabled) return;
+    if (state.isGameOver || state.isAiThinking) return;
+
+    // Check player permissions
+    if (state.gameMode === 'pve' && state.currentPlayer === 'O') return;
+    if (state.gameMode === 'p2p' && state.currentPlayer !== state.p2pPlayerSymbol) return;
+
+    if (this.activePerkTargeting === perk) {
+      this.cancelPerkTargeting();
+      return;
+    }
+
+    if (!state.hasPerk(state.currentPlayer, perk)) {
+      sound.playError();
+      ui.showToast('⚠️ Заряд перка на этот раунд исчерпан!');
+      return;
+    }
+
+    this.activePerkTargeting = perk;
+    sound.playClick();
+    const promptText = perk === 'emp'
+      ? '🎯 КЛИКНИТЕ НА МЕТКУ СОПЕРНИКА ДЛЯ ЭМИ-УДАРА'
+      : '❄️ КЛИКНИТЕ НА СВОБОДНУЮ КЛЕТКУ ДЛЯ ЗАМОРОЗКИ';
+    ui.setTargetingMode(perk, promptText);
+  }
+
+  cancelPerkTargeting() {
+    this.activePerkTargeting = null;
+    ui.setTargetingMode(null);
+  }
+
+  activateOverdrive() {
+    if (!state.perksEnabled) return;
+    if (state.isGameOver || state.isAiThinking) return;
+    if (state.gameMode === 'pve' && state.currentPlayer === 'O') return;
+    if (state.gameMode === 'p2p' && state.currentPlayer !== state.p2pPlayerSymbol) return;
+
+    if (!state.hasPerk(state.currentPlayer, 'overdrive')) {
+      sound.playError();
+      ui.showToast('⚠️ Заряд Овердрайва на этот раунд исчерпан!');
+      return;
+    }
+
+    this.cancelPerkTargeting();
+    state.usePerk(state.currentPlayer, 'overdrive');
+    state.overdriveTurnsLeft = 1;
+    state.usedOverdriveThisRound = true;
+
+    sound.playOverdrive();
+    particles.fireOverdrive(window.innerWidth / 2, window.innerHeight / 2);
+    ui.showToast('🚀 ОВЕРДРАЙВ АКТИВЕН! СДЕЛАЙТЕ 2 ХОДА ПОДРЯД!');
+    ui.updatePerksUI(state);
+  }
+
+  handlePerkTargetingClick(index) {
+    const player = state.currentPlayer;
+    const opponent = player === 'X' ? 'O' : 'X';
+
+    if (this.activePerkTargeting === 'emp') {
+      if (state.board[index] && state.board[index] === opponent) {
+        const cell = ui.cells[index];
+        const rect = cell ? cell.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
+        sound.playEmpBlast();
+        particles.fireEmp(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        state.removeMark(index);
+        ui.clearCell(index);
+        state.usePerk(player, 'emp');
+        this.awardAchievement('EMP_SABOTEUR');
+        this.cancelPerkTargeting();
+        ui.updatePerksUI(state);
+        ui.showToast('⚡ ЭМИ-УДАР УСПЕШНО УНИЧТОЖИЛ МЕТКУ!');
+
+        // Pass turn
+        state.switchTurn();
+        ui.updateTurnIndicator(state.currentPlayer);
+        ui.updatePerksUI(state);
+        if (state.gameType === 'blitz') this.startBlitzTimer();
+        if (state.gameMode === 'pve' && state.currentPlayer === 'O' && !state.isGameOver) {
+          this.triggerAiTurn();
+        }
+      } else {
+        sound.playError();
+        ui.showToast('⚠️ Выберите метку СОПЕРНИКА!');
+      }
+      return;
+    }
+
+    if (this.activePerkTargeting === 'cryo') {
+      if (state.board[index] === null && !state.isCellFrozen(index)) {
+        const cell = ui.cells[index];
+        const rect = cell ? cell.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
+        sound.playCryoLock();
+        particles.fireCryo(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        state.freezeCell(index, 2);
+        ui.updateFrozenCellsUI(state);
+        state.usePerk(player, 'cryo');
+        this.awardAchievement('CRYO_LOCK');
+        this.cancelPerkTargeting();
+        ui.updatePerksUI(state);
+        ui.showToast('❄️ КЛЕТКА ЗАМОРОЖЕНА НА 2 ХОДА!');
+
+        // Pass turn
+        state.switchTurn();
+        ui.updateTurnIndicator(state.currentPlayer);
+        ui.updatePerksUI(state);
+        if (state.gameType === 'blitz') this.startBlitzTimer();
+        if (state.gameMode === 'pve' && state.currentPlayer === 'O' && !state.isGameOver) {
+          this.triggerAiTurn();
+        }
+      } else {
+        sound.playError();
+        ui.showToast('⚠️ Выберите СВОБОДНУЮ незамороженную клетку!');
+      }
+      return;
+    }
+  }
+
   handleCellClick(index) {
     if (state.isGameOver) {
       // Fail-safe: if the round is finished and user clicks the board, immediately ensure modal is displayed
@@ -656,6 +821,18 @@ class CyberTicTacToe {
       return;
     }
     if (state.isAiThinking) return;
+
+    if (this.activePerkTargeting) {
+      this.handlePerkTargetingClick(index);
+      return;
+    }
+
+    if (state.isCellFrozen(index)) {
+      sound.playError();
+      ui.showToast('🧊 КЛЕТКА ЗАМОРОЖЕНА КРИО-ХАКОМ!');
+      return;
+    }
+
     if (state.board[index] !== null) return;
 
     // In P2P mode, check if it's local player's turn
@@ -711,26 +888,43 @@ class CyberTicTacToe {
 
     if (result) {
       this.stopBlitzTimer();
+      if (state.usedOverdriveThisRound && result.winner === 'X') {
+        this.awardAchievement('OVERDRIVE_WIN');
+      }
       this.handleGameEnd(result);
     } else {
-      state.switchTurn();
-      try { ui.updateScoreboard(state); } catch (e) {}
+      if (state.overdriveTurnsLeft > 0) {
+        state.overdriveTurnsLeft--;
+        ui.showToast('⚡ ВТОРОЙ ХОД ОВЕРДРАЙВА!');
+        ui.updatePerksUI(state);
+        if (state.gameType === 'blitz') this.startBlitzTimer();
+        if (state.gameMode === 'pve' && state.currentPlayer === 'O') {
+          setTimeout(() => this.triggerAiTurn(), 420);
+        }
+      } else {
+        const unfrozen = state.tickFrozenCells();
+        if (unfrozen.length > 0) ui.updateFrozenCellsUI(state);
 
-      // Update Ghost mark warning beacon for the new player
-      if (state.gameType === 'infinity') {
-        try {
-          const nextExpiring = state.getExpiringGhostCell(state.currentPlayer);
-          if (nextExpiring !== null) {
-            ui.setGhostWarning(nextExpiring);
-          } else {
-            ui.clearGhostWarnings();
-          }
-        } catch (e) {}
-      }
+        state.switchTurn();
+        try { ui.updateScoreboard(state); } catch (e) {}
+        ui.updatePerksUI(state);
 
-      // Reset Blitz timer for next turn
-      if (state.gameType === 'blitz') {
-        this.startBlitzTimer();
+        // Update Ghost mark warning beacon for the new player
+        if (state.gameType === 'infinity') {
+          try {
+            const nextExpiring = state.getExpiringGhostCell(state.currentPlayer);
+            if (nextExpiring !== null) {
+              ui.setGhostWarning(nextExpiring);
+            } else {
+              ui.clearGhostWarnings();
+            }
+          } catch (e) {}
+        }
+
+        // Reset Blitz timer for next turn
+        if (state.gameType === 'blitz') {
+          this.startBlitzTimer();
+        }
       }
     }
   }
@@ -752,6 +946,53 @@ class CyberTicTacToe {
       }
 
       try {
+        if (state.perksEnabled) {
+          const perkAction = getAiPerkAction(state, 'O', 'X');
+          if (perkAction) {
+            if (perkAction.type === 'emp' && perkAction.targetIndex !== undefined) {
+              const idx = perkAction.targetIndex;
+              state.isAiThinking = false;
+              ui.setAiThinking(false);
+              const cell = ui.cells[idx];
+              const rect = cell ? cell.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
+              sound.playEmpBlast();
+              particles.fireEmp(rect.left + rect.width / 2, rect.top + rect.height / 2);
+              state.removeMark(idx);
+              ui.clearCell(idx);
+              state.usePerk('O', 'emp');
+              ui.showToast('🤖 ИИ ИСПОЛЬЗОВАЛ ЭМИ-УДАР!');
+              ui.updatePerksUI(state);
+              state.switchTurn();
+              ui.updateTurnIndicator(state.currentPlayer);
+              return;
+            } else if (perkAction.type === 'cryo' && perkAction.targetIndex !== undefined) {
+              const idx = perkAction.targetIndex;
+              state.isAiThinking = false;
+              ui.setAiThinking(false);
+              const cell = ui.cells[idx];
+              const rect = cell ? cell.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
+              sound.playCryoLock();
+              particles.fireCryo(rect.left + rect.width / 2, rect.top + rect.height / 2);
+              state.freezeCell(idx, 2);
+              ui.updateFrozenCellsUI(state);
+              state.usePerk('O', 'cryo');
+              ui.showToast('🤖 ИИ ЗАМОРОЗИЛ КЛЕТКУ КРИО-ХАКОМ!');
+              ui.updatePerksUI(state);
+              state.switchTurn();
+              ui.updateTurnIndicator(state.currentPlayer);
+              return;
+            } else if (perkAction.type === 'overdrive') {
+              state.usePerk('O', 'overdrive');
+              state.overdriveTurnsLeft = 1;
+              state.usedOverdriveThisRound = true;
+              sound.playOverdrive();
+              particles.fireOverdrive(window.innerWidth / 2, window.innerHeight / 2);
+              ui.showToast('🤖 ИИ АКТИВИРОВАЛ ОВЕРДРАЙВ!');
+              ui.updatePerksUI(state);
+            }
+          }
+        }
+
         const bestMove = getAiMove(
           state.board,
           state.aiDifficulty,
@@ -962,6 +1203,7 @@ class CyberTicTacToe {
     this.stopBlitzTimer();
     this.localRematchRequested = false;
     this.remoteRematchRequested = false;
+    this.activePerkTargeting = null;
     ui.setRematchState('idle');
     ui.showMenuScreen();
     ui.updateRankUI(state);
@@ -1011,6 +1253,7 @@ class CyberTicTacToe {
     this.stopBlitzTimer();
     this.localRematchRequested = false;
     this.remoteRematchRequested = false;
+    this.activePerkTargeting = null;
     ui.setRematchState('idle');
 
     // Auto-swap sides in P2P mode for competitive fairness
@@ -1021,10 +1264,13 @@ class CyberTicTacToe {
     }
 
     state.resetRound();
+    this.cancelPerkTargeting();
     this.rebuildGameBoard();
     ui.clearBoard();
     ui.updateScoreboard(state);
     ui.updateGameTypeCards(state.gameType);
+    ui.updatePerksUI(state);
+    ui.updateFrozenCellsUI(state);
 
     if (state.gameType === 'blitz') {
       this.startBlitzTimer();

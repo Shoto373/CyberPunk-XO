@@ -176,6 +176,18 @@
           </div>
         </div>
 
+        <!-- Cyber Combat Perks Toggle -->
+        <div class="perks-toggle-card">
+          <div class="perks-toggle-info">
+            <span class="perks-toggle-icon">💥</span>
+            <div class="perks-toggle-text">
+              <span class="perks-toggle-title">КИБЕР-СПОСОБНОСТИ</span>
+              <span class="perks-toggle-desc">ЭМИ-удар, Крио-блок и Овердрайв</span>
+            </div>
+          </div>
+          <button class="perks-toggle-btn" id="btn-toggle-perks" type="button">ВЫКЛ</button>
+        </div>
+
         <!-- P2P Room Panel (displayed when P2P mode is selected) -->
         <div class="p2p-panel" id="p2p-panel">
           <button class="p2p-btn p2p-btn-host" id="btn-p2p-host" type="button">
@@ -350,6 +362,36 @@
           <button class="reaction-btn" data-reaction="GG WP" type="button">GG</button>
           <button class="reaction-btn" data-reaction="ХОРОШ!" type="button">ХОРОШ!</button>
           <button class="reaction-btn" data-reaction="ОЙ..." type="button">ОЙ...</button>
+        </div>
+      </div>
+
+      <!-- Cyber Combat Perks Bar (shown when perks are enabled) -->
+      <div class="perks-bar" id="perks-bar" style="display: none;">
+        <div class="perks-header">
+          <span class="perks-title">СПОСОБНОСТИ (<span id="perks-active-player">X</span>)</span>
+          <span class="perks-hint">1 заряд на раунд</span>
+        </div>
+        <div class="perks-buttons">
+          <button class="perk-btn" id="perk-btn-emp" data-perk="emp" type="button" title="ЭМИ-удар (Z): Уничтожить метку соперника">
+            <span class="perk-icon">⚡</span>
+            <span class="perk-name">ЭМИ</span>
+            <span class="perk-count" id="perk-count-emp">1/1</span>
+          </button>
+          <button class="perk-btn" id="perk-btn-cryo" data-perk="cryo" type="button" title="Крио-блок (X): Заморозить клетку на 2 хода">
+            <span class="perk-icon">❄️</span>
+            <span class="perk-name">КРИО</span>
+            <span class="perk-count" id="perk-count-cryo">1/1</span>
+          </button>
+          <button class="perk-btn" id="perk-btn-overdrive" data-perk="overdrive" type="button" title="Овердрайв (C): Сделать 2 хода подряд">
+            <span class="perk-icon">🚀</span>
+            <span class="perk-name">ОВЕРДРАЙВ</span>
+            <span class="perk-count" id="perk-count-overdrive">1/1</span>
+          </button>
+        </div>
+        <!-- Active Targeting Alert / Banner -->
+        <div class="perk-targeting-alert" id="perk-targeting-alert" style="display: none;">
+          <span id="perk-targeting-text">ВЫБЕРИТЕ ЦЕЛЬ НА ПОЛЕ</span>
+          <button class="perk-cancel-btn" id="btn-perk-cancel" type="button">&times; Отмена (Esc)</button>
         </div>
       </div>
 
@@ -540,6 +582,19 @@
           <p class="rule-desc">Увеличенная тактическая матрица 16 клеток. Чтобы победить, соберите <strong>4 знака в непрерывный ряд</strong>!</p>
         </div>
 
+        <div class="rule-card perks-rule-card">
+          <div class="rule-card-header">
+            <span class="rule-icon">💥</span>
+            <span class="rule-title">КИБЕР-СПОСОБНОСТИ (ПЕРКИ)</span>
+          </div>
+          <p class="rule-desc">
+            Включаются тумблером в меню. У каждого игрока по 1 заряду на раунд:<br>
+            • <strong>⚡ ЭМИ-удар (Z)</strong> — выжигает любую выбранную метку соперника с поля.<br>
+            • <strong>❄️ Крио-блок (X)</strong> — замораживает пустую клетку на 2 хода (туда нельзя пойти).<br>
+            • <strong>🚀 Овердрайв (C)</strong> — даёт право сделать 2 хода подряд в свой ход!
+          </p>
+        </div>
+
         <!-- Hotkeys Section -->
         <div class="rule-card hotkeys-card">
           <div class="rule-card-header">
@@ -554,6 +609,7 @@
             <div class="hotkey-item"><kbd>M / B</kbd> <span>Звуки / Музыка</span></div>
             <div class="hotkey-item"><kbd>C / T</kbd> <span>CRT-эффект / Смена темы</span></div>
             <div class="hotkey-item"><kbd>K / H</kbd> <span>Скины / Правила</span></div>
+            <div class="hotkey-item"><kbd>Z / X / C</kbd> <span>ЭМИ / Крио / Овердрайв</span></div>
             <div class="hotkey-item"><kbd>Esc</kbd> <span>Закрыть окно</span></div>
           </div>
         </div>
