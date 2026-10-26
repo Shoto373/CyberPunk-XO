@@ -42,12 +42,24 @@ class UIEngine {
     this.labelO = document.getElementById('label-o');
     this.thinkingBadge = document.getElementById('thinking-badge');
 
-    // Mode Toggle & Difficulty
+    // Mode Toggle & Difficulty & P2P
     this.modeToggle = document.getElementById('mode-toggle');
     this.btnModePvp = document.getElementById('btn-mode-pvp');
     this.btnModePve = document.getElementById('btn-mode-pve');
+    this.btnModeP2p = document.getElementById('btn-mode-p2p');
     this.diffChipsContainer = document.getElementById('difficulty-chips');
     this.diffChips = Array.from(document.querySelectorAll('.chip-btn'));
+
+    // P2P Panel Elements
+    this.p2pPanel = document.getElementById('p2p-panel');
+    this.btnP2pHost = document.getElementById('btn-p2p-host');
+    this.btnP2pJoin = document.getElementById('btn-p2p-join');
+    this.btnP2pCopy = document.getElementById('btn-p2p-copy');
+    this.inputP2pCode = document.getElementById('input-p2p-code');
+    this.p2pRoomBox = document.getElementById('p2p-room-box');
+    this.p2pCodeBadge = document.getElementById('p2p-code-badge');
+    this.p2pStatusText = document.getElementById('p2p-status-text');
+    this.p2pStatusDot = document.getElementById('p2p-status-dot');
 
     // Audio & BGM Buttons
     this.btnAudios = Array.from(document.querySelectorAll('.audio-btn'));
@@ -268,6 +280,9 @@ class UIEngine {
     if (state.gameMode === 'pvp') {
       this.labelX.textContent = 'ИГРОК 1';
       this.labelO.textContent = 'ИГРОК 2';
+    } else if (state.gameMode === 'p2p') {
+      this.labelX.textContent = (state.p2pPlayerSymbol === 'X') ? 'ВЫ (X)' : 'СОПЕРНИК (X)';
+      this.labelO.textContent = (state.p2pPlayerSymbol === 'O') ? 'ВЫ (O)' : 'СОПЕРНИК (O)';
     } else {
       this.labelX.textContent = 'ВЫ (X)';
       this.labelO.textContent = 'КИБЕР ИИ';
@@ -451,14 +466,23 @@ class UIEngine {
     if (this.modeToggle) {
       this.modeToggle.setAttribute('data-mode', mode);
     }
+
+    [this.btnModePvp, this.btnModePve, this.btnModeP2p].forEach(btn => {
+      if (btn) btn.classList.remove('active');
+    });
+
     if (mode === 'pvp') {
       if (this.btnModePvp) this.btnModePvp.classList.add('active');
-      if (this.btnModePve) this.btnModePve.classList.remove('active');
       if (this.diffChipsContainer) this.diffChipsContainer.classList.add('hidden');
-    } else {
+      if (this.p2pPanel) this.p2pPanel.classList.remove('visible');
+    } else if (mode === 'pve') {
       if (this.btnModePve) this.btnModePve.classList.add('active');
-      if (this.btnModePvp) this.btnModePvp.classList.remove('active');
       if (this.diffChipsContainer) this.diffChipsContainer.classList.remove('hidden');
+      if (this.p2pPanel) this.p2pPanel.classList.remove('visible');
+    } else if (mode === 'p2p') {
+      if (this.btnModeP2p) this.btnModeP2p.classList.add('active');
+      if (this.diffChipsContainer) this.diffChipsContainer.classList.add('hidden');
+      if (this.p2pPanel) this.p2pPanel.classList.add('visible');
     }
   }
 

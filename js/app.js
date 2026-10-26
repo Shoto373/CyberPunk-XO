@@ -1,6 +1,6 @@
 /**
- * APP.JS - Application Orchestrator & Event Binding
- * Main Entry Point for Cyber XO Game
+ * APP.JS - Application Orchestrator, P2P Multiplayer & PWA Lifecycle
+ * Main Entry Point for Cyber XO Game 3.0
  */
 
 import { state } from './state.js';
@@ -8,6 +8,7 @@ import { sound } from './audio.js';
 import { particles } from './particles.js';
 import { getAiMove } from './ai.js';
 import { ui } from './ui.js';
+import { p2p } from './p2p.js';
 
 class CyberTicTacToe {
   constructor() {
@@ -32,14 +33,74 @@ class CyberTicTacToe {
     // Default to main menu
     ui.showMenuScreen();
 
-    // Bind DOM events
+    // Bind DOM events & P2P WebRTC networking
     this.bindEvents();
+    this.initP2P();
+
+    // Register Service Worker for offline PWA
+    this.registerServiceWorker();
+  }
+
+  registerServiceWorker() {
+    if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+          console.warn('ServiceWorker registration error:', err);
+        });
+      });
+    }
   }
 
   rebuildGameBoard() {
     ui.buildBoard(state.gridSize, (index) => {
       this.handleCellClick(index);
     });
+  }
+
+  initP2P() {
+    p2p.onConnectedCallback = (isHost, roomCode, symbol) => {
+      state.p2pPlayerSymbol = symbol;
+      state.setGameMode('p2p');
+      ui.updateModeUI('p2p');
+      if (ui.p2pStatusDot) ui.p2pStatusDot.classList.add('connected');
+      if (ui.p2pStatusText) ui.p2pStatusText.textContent = `Соперник в сети! Ваша сторона: ${symbol}`;
+
+      setTimeout(() => {
+        this.startNewRound();
+        ui.showGameScreen();
+      }, 700);
+    };
+
+    p2p.onMoveCallback = (index) => {
+      if (!state.isGameOver && state.board[index] === null) {
+        this.executeMove(index, state.currentPlayer);
+      }
+    };
+
+    p2p.onRematchCallback = () => {
+      this.startNewRound();
+    };
+
+    p2p.onDisconnectCallback = () => {
+      if (ui.p2pStatusDot) ui.p2pStatusDot.classList.remove('connected');
+      if (ui.p2pStatusText) ui.p2pStatusText.textContent = 'Соперник отключился от сессии';
+    };
+
+    p2p.onErrorCallback = (err) => {
+      if (ui.p2pStatusText) ui.p2pStatusText.textContent = err;
+    };
+
+    // Check URL parameters for ?room=ROOMCODE
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room');
+    if (roomParam) {
+      state.setGameMode('p2p');
+      ui.updateModeUI('p2p');
+      if (ui.inputP2pCode) ui.inputP2pCode.value = roomParam;
+      p2p.joinRoom(roomParam, (status) => {
+        if (ui.p2pStatusText) ui.p2pStatusText.textContent = status;
+      });
+    }
   }
 
   bindEvents() {
@@ -75,7 +136,7 @@ class CyberTicTacToe {
       });
     });
 
-    // BGM Ambient Toggle
+    // BGM Ambient Music Toggle
     ui.btnBgms.forEach(btn => {
       btn.addEventListener('click', () => {
         const isPlaying = sound.toggleBgm();
@@ -102,11 +163,12 @@ class CyberTicTacToe {
       });
     }
 
-    // Opponent Switcher (PVP / PVE)
+    // Opponent Switcher (PVP / PVE / P2P)
     if (ui.btnModePvp) {
       ui.btnModePvp.addEventListener('click', () => {
         if (state.gameMode !== 'pvp') {
           sound.playClick();
+          p2p.disconnect();
           state.setGameMode('pvp');
           ui.updateModeUI('pvp');
           this.startNewRound();
@@ -118,9 +180,59 @@ class CyberTicTacToe {
       ui.btnModePve.addEventListener('click', () => {
         if (state.gameMode !== 'pve') {
           sound.playClick();
+          p2p.disconnect();
           state.setGameMode('pve');
           ui.updateModeUI('pve');
           this.startNewRound();
+        }
+      });
+    }
+
+    if (ui.btnModeP2p) {
+      ui.btnModeP2p.addEventListener('click', () => {
+        if (state.gameMode !== 'p2p') {
+          sound.playClick();
+          state.setGameMode('p2p');
+          ui.updateModeUI('p2p');
+        }
+      });
+    }
+
+    // P2P Room Host Button
+    if (ui.btnP2pHost) {
+      ui.btnP2pHost.addEventListener('click', () => {
+        sound.playClick();
+        const roomCode = p2p.createRoom(state.gameType, (status) => {
+          if (ui.p2pStatusText) ui.p2pStatusText.textContent = status;
+        });
+
+        if (ui.p2pRoomBox) ui.p2pRoomBox.classList.add('visible');
+        if (ui.p2pCodeBadge) ui.p2pCodeBadge.textContent = roomCode;
+      });
+    }
+
+    // P2P Copy Share Link
+    if (ui.btnP2pCopy) {
+      ui.btnP2pCopy.addEventListener('click', async () => {
+        sound.playClick();
+        const copied = await p2p.copyShareLink();
+        if (copied) {
+          const original = ui.btnP2pCopy.textContent;
+          ui.btnP2pCopy.textContent = '✓ СКОПИРОВАНО!';
+          setTimeout(() => { ui.btnP2pCopy.textContent = original; }, 2000);
+        }
+      });
+    }
+
+    // P2P Join Room
+    if (ui.btnP2pJoin && ui.inputP2pCode) {
+      ui.btnP2pJoin.addEventListener('click', () => {
+        const code = ui.inputP2pCode.value.trim();
+        if (code) {
+          sound.playClick();
+          p2p.joinRoom(code, (status) => {
+            if (ui.p2pStatusText) ui.p2pStatusText.textContent = status;
+          });
         }
       });
     }
@@ -151,6 +263,9 @@ class CyberTicTacToe {
     if (ui.btnNewRound) {
       ui.btnNewRound.addEventListener('click', () => {
         sound.playClick();
+        if (state.gameMode === 'p2p') {
+          p2p.sendRematch();
+        }
         this.startNewRound();
       });
     }
@@ -168,6 +283,9 @@ class CyberTicTacToe {
     if (ui.btnModalRematch) {
       ui.btnModalRematch.addEventListener('click', () => {
         sound.playClick();
+        if (state.gameMode === 'p2p') {
+          p2p.sendRematch();
+        }
         this.startNewRound();
       });
     }
@@ -179,7 +297,7 @@ class CyberTicTacToe {
       });
     }
 
-    // Initialize Web Audio on first user interaction anywhere
+    // Unlock Web Audio on first user interaction anywhere
     const unlockAudio = () => {
       sound.initContext();
       window.removeEventListener('click', unlockAudio);
@@ -195,6 +313,14 @@ class CyberTicTacToe {
   handleCellClick(index) {
     if (state.isGameOver || state.isAiThinking) return;
     if (state.board[index] !== null) return;
+
+    // In P2P mode, check if it's local player's turn
+    if (state.gameMode === 'p2p') {
+      if (state.currentPlayer !== state.p2pPlayerSymbol) {
+        return; // Opponent's turn
+      }
+      p2p.sendMove(index);
+    }
 
     this.executeMove(index, state.currentPlayer);
 
@@ -312,6 +438,7 @@ class CyberTicTacToe {
       ui.showResultModal(result, state.gameMode);
     } else if (result.status === 'tie') {
       ui.triggerScreenShake();
+      ui.triggerGlitch();
       sound.playDraw();
       ui.showResultModal(result, state.gameMode);
     }
@@ -363,8 +490,9 @@ class CyberTicTacToe {
     if (state.isGameOver) return;
 
     ui.triggerScreenShake();
+    ui.triggerGlitch();
 
-    // Turn timeout: player loses turn or makes a forced random move
+    // In P2P mode, timeout transfers turn or auto-moves
     const available = [];
     for (let i = 0; i < state.board.length; i++) {
       if (state.board[i] === null) available.push(i);
@@ -372,6 +500,9 @@ class CyberTicTacToe {
 
     if (available.length > 0) {
       const forcedMove = available[Math.floor(Math.random() * available.length)];
+      if (state.gameMode === 'p2p' && state.currentPlayer === state.p2pPlayerSymbol) {
+        p2p.sendMove(forcedMove);
+      }
       this.executeMove(forcedMove, state.currentPlayer);
 
       if (state.gameMode === 'pve' && !state.isGameOver && state.currentPlayer === 'O') {

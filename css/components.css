@@ -200,7 +200,7 @@
 
 .mode-toggle {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   position: relative;
   background: rgba(10, 15, 36, 0.7);
   backdrop-filter: blur(12px);
@@ -214,10 +214,10 @@
   border: none;
   color: var(--text-secondary);
   font-family: var(--font-display);
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 1px;
-  padding: 8px 12px;
+  letter-spacing: 0.5px;
+  padding: 8px 6px;
   border-radius: var(--pill-radius);
   cursor: pointer;
   transition: all var(--transition-normal);
@@ -226,7 +226,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.3rem;
+  text-align: center;
 }
 
 .mode-btn:hover {
@@ -243,7 +244,7 @@
   top: 4px;
   bottom: 4px;
   left: 4px;
-  width: calc(50% - 4px);
+  width: calc(33.333% - 4px);
   background: linear-gradient(135deg, var(--neon-x), #38bdf8);
   border-radius: var(--pill-radius);
   box-shadow: 0 0 15px var(--neon-x-glow);
@@ -251,10 +252,153 @@
   z-index: 1;
 }
 
+.mode-toggle[data-mode="pvp"] .mode-slider {
+  transform: translateX(0);
+}
+
 .mode-toggle[data-mode="pve"] .mode-slider {
   transform: translateX(100%);
   background: linear-gradient(135deg, #f43f5e, var(--neon-o));
   box-shadow: 0 0 15px var(--neon-o-glow);
+}
+
+.mode-toggle[data-mode="p2p"] .mode-slider {
+  transform: translateX(200%);
+  background: linear-gradient(135deg, var(--neon-gold), #f59e0b);
+  box-shadow: 0 0 15px var(--neon-gold-glow);
+}
+
+/* P2P Multiplayer Room Panel */
+.p2p-panel {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--surface-glass-card);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--card-radius);
+  padding: 1rem;
+  backdrop-filter: blur(14px);
+  width: 100%;
+}
+
+.p2p-panel.visible {
+  display: flex;
+}
+
+.p2p-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+.p2p-join-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.p2p-input {
+  flex: 1;
+  background: rgba(6, 8, 20, 0.6);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--pill-radius);
+  padding: 8px 14px;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.p2p-input:focus {
+  border-color: var(--neon-x);
+  box-shadow: 0 0 10px var(--neon-x-soft);
+}
+
+.p2p-btn {
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-glass-border);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px 14px;
+  border-radius: var(--pill-radius);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.p2p-btn:hover {
+  border-color: var(--neon-gold);
+  color: var(--neon-gold);
+  box-shadow: 0 0 12px var(--neon-gold-soft);
+}
+
+.p2p-btn-host {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(157, 78, 221, 0.2));
+  border-color: rgba(255, 215, 0, 0.4);
+  color: var(--neon-gold);
+  width: 100%;
+  padding: 10px;
+}
+
+.p2p-room-box {
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(0, 243, 255, 0.05);
+  border: 1px dashed var(--neon-x-soft);
+  border-radius: 12px;
+  padding: 0.75rem;
+  align-items: center;
+  text-align: center;
+}
+
+.p2p-room-box.visible {
+  display: flex;
+}
+
+.p2p-code-badge {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: var(--neon-x);
+  filter: drop-shadow(0 0 8px var(--neon-x-glow));
+}
+
+.p2p-status-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.p2p-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-gold);
+  animation: p2p-pulse 1s infinite alternate;
+}
+
+.p2p-dot.connected {
+  background: #00ff66;
+  box-shadow: 0 0 8px #00ff66;
+}
+
+@keyframes p2p-pulse {
+  0% { opacity: 0.4; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1.15); }
 }
 
 /* Difficulty Selector Chips */

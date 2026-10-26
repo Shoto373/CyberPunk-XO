@@ -12,6 +12,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 
+  <!-- PWA Manifest & App Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon-192.svg">
+  <link rel="apple-touch-icon" href="icon-192.svg">
+
   <!-- Modular CSS Hierarchy -->
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/style.css">
@@ -128,12 +133,40 @@
             <div class="mode-slider" aria-hidden="true"></div>
             <button class="mode-btn" id="btn-mode-pvp" type="button">1 VS 1 (PVP)</button>
             <button class="mode-btn active" id="btn-mode-pve" type="button">VS AI (PVE)</button>
+            <button class="mode-btn" id="btn-mode-p2p" type="button">ОНЛАЙН (P2P)</button>
           </div>
 
           <div class="difficulty-chips" id="difficulty-chips">
             <button class="chip-btn" id="chip-easy" data-diff="easy" type="button">Новичок</button>
             <button class="chip-btn" id="chip-medium" data-diff="medium" type="button">Тактик</button>
             <button class="chip-btn active" id="chip-unbeatable" data-diff="unbeatable" type="button">Мастер</button>
+          </div>
+        </div>
+
+        <!-- P2P Room Panel (displayed when P2P mode is selected) -->
+        <div class="p2p-panel" id="p2p-panel">
+          <button class="p2p-btn p2p-btn-host" id="btn-p2p-host" type="button">
+            <span>🌐</span> СОЗДАТЬ ОНЛАЙН-КОМНАТУ
+          </button>
+          <div class="p2p-room-box" id="p2p-room-box">
+            <span style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">КОД ВАШЕЙ КОМНАТЫ:</span>
+            <div class="p2p-code-badge" id="p2p-code-badge">------</div>
+            <button class="p2p-btn" id="btn-p2p-copy" type="button" style="width: 100%;">
+              <span>🔗</span> СКОПИРОВАТЬ ССЫЛКУ-ПРИГЛАШЕНИЕ
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin: 0.2rem 0;">
+            <div style="flex: 1; height: 1px; background: var(--surface-glass-border);"></div>
+            <span style="font-size: 0.65rem; color: var(--text-muted); letter-spacing: 1px;">ИЛИ ПОДКЛЮЧИТЬСЯ ПО КОДУ</span>
+            <div style="flex: 1; height: 1px; background: var(--surface-glass-border);"></div>
+          </div>
+          <div class="p2p-join-row">
+            <input class="p2p-input" id="input-p2p-code" type="text" placeholder="КОД (6 СИМВОЛОВ)" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="characters">
+            <button class="p2p-btn" id="btn-p2p-join" type="button">ВОЙТИ</button>
+          </div>
+          <div class="p2p-status-text" id="p2p-status-row">
+            <div class="p2p-dot" id="p2p-status-dot"></div>
+            <span id="p2p-status-text">Ожидание выбора комнаты...</span>
           </div>
         </div>
       </div>
@@ -286,6 +319,9 @@
       </div>
     </div>
   </aside>
+
+  <!-- PeerJS WebRTC Library for Serverless P2P Multiplayer -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <!-- ES6 Module Entry Point -->
   <script type="module" src="js/app.js"></script>

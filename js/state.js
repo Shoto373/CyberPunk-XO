@@ -93,7 +93,7 @@ class GameState {
   }
 
   setGameMode(mode) {
-    if (mode === 'pvp' || mode === 'pve') {
+    if (mode === 'pvp' || mode === 'pve' || mode === 'p2p') {
       this.gameMode = mode;
       localStorage.setItem(STORAGE_KEYS.MODE, mode);
     }
