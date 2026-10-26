@@ -17,19 +17,31 @@ export const WINNING_COMBOS_4X4 = [
   [0, 5, 10, 15], [3, 6, 9, 12]
 ];
 
+export const ACHIEVEMENTS_LIST = [
+  { id: 'FIRST_WIN', icon: '⚡', title: 'Первая кровь', desc: 'Одержите первую победу в любом режиме' },
+  { id: 'NEUROMANCER', icon: '🧠', title: 'Нейромант', desc: 'Победите кибер-ИИ на сложности «Мастер»' },
+  { id: 'BLITZ_SPEED', icon: '⏱️', title: 'Кибер-молния', desc: 'Выиграйте матч в режиме Блиц 5с' },
+  { id: 'INFINITY_SURVIVOR', icon: '♾️', title: 'Квантовый парадокс', desc: 'Сделайте 8 ходов в одном раунде Infinity XO' },
+  { id: 'P2P_GHOST', icon: '🌐', title: 'Сетевой призрак', desc: 'Одержите победу в онлайн P2P дуэли' },
+  { id: 'STREAK_3', icon: '🔥', title: 'Серийный взломщик', desc: 'Выиграйте 3 матча подряд без поражений' },
+  { id: 'GRID_ARCHITECT', icon: '📐', title: 'Архитектор 4×4', desc: 'Соберите победную линию из 4 клеток' }
+];
+
 const STORAGE_KEYS = {
   SCORES: 'cyber_xo_scores',
   MODE: 'cyber_xo_mode',
   TYPE: 'cyber_xo_game_type',
   DIFF: 'cyber_xo_diff',
   THEME: 'cyber_xo_theme',
-  CRT: 'cyber_xo_crt'
+  CRT: 'cyber_xo_crt',
+  STATS: 'cyber_xo_stats',
+  ACHIEVEMENTS: 'cyber_xo_achievements'
 };
 
 class GameState {
   constructor() {
     this.gameType = localStorage.getItem(STORAGE_KEYS.TYPE) || 'classic'; // 'classic' | 'infinity' | 'blitz' | 'grid4'
-    this.gameMode = localStorage.getItem(STORAGE_KEYS.MODE) || 'pve';     // 'pvp' | 'pve'
+    this.gameMode = localStorage.getItem(STORAGE_KEYS.MODE) || 'pve';     // 'pvp' | 'pve' | 'p2p'
     this.aiDifficulty = localStorage.getItem(STORAGE_KEYS.DIFF) || 'unbeatable'; // 'easy' | 'medium' | 'unbeatable'
     this.theme = localStorage.getItem(STORAGE_KEYS.THEME) || 'cyber';     // 'cyber' | 'matrix' | 'outrun' | 'blood'
     this.isCrt = localStorage.getItem(STORAGE_KEYS.CRT) === 'true';
@@ -40,6 +52,11 @@ class GameState {
     
     this.currentPlayer = 'X';
     this.scores = this.loadScores();
+    this.stats = this.loadStats();
+    this.achievements = this.loadAchievements();
+    this.p2pPlayerSymbol = 'X';
+    this.roundMoveCount = 0;
+
     this.isGameOver = false;
     this.winner = null;
     this.winningLine = null;
@@ -147,6 +164,7 @@ class GameState {
     }
 
     this.board[index] = player;
+    this.roundMoveCount++;
     this.moveHistory.push({ index, player, dissolved: dissolvedCell });
     return { success: true, dissolved: dissolvedCell };
   }
@@ -186,6 +204,116 @@ class GameState {
     return null; // Game continues
   }
 
+  loadStats() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.STATS);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      totalMatches: 0,
+      wins: 0,
+      losses: 0,
+      ties: 0,
+      currentStreak: 0,
+      maxStreak: 0
+    };
+  }
+
+  saveStats() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(this.stats));
+    } catch (e) {}
+  }
+
+  loadAchievements() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.ACHIEVEMENTS);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [];
+  }
+
+  saveAchievements() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.ACHIEVEMENTS, JSON.stringify(this.achievements));
+    } catch (e) {}
+  }
+
+  swapP2PSymbol() {
+    this.p2pPlayerSymbol = (this.p2pPlayerSymbol === 'X') ? 'O' : 'X';
+    return this.p2pPlayerSymbol;
+  }
+
+  resetAllStats() {
+    this.stats = {
+      totalMatches: 0,
+      wins: 0,
+      losses: 0,
+      ties: 0,
+      currentStreak: 0,
+      maxStreak: 0
+    };
+    this.saveStats();
+  }
+
+  checkAchievements(isWin, isTie, isLoss) {
+    const newlyUnlocked = [];
+    const unlock = (id) => {
+      if (!this.achievements.includes(id)) {
+        this.achievements.push(id);
+        const ach = ACHIEVEMENTS_LIST.find(a => a.id === id);
+        if (ach) newlyUnlocked.push(ach);
+      }
+    };
+
+    if (isWin) {
+      unlock('FIRST_WIN');
+      if (this.gameMode === 'pve' && this.aiDifficulty === 'unbeatable') {
+        unlock('NEUROMANCER');
+      }
+      if (this.gameType === 'blitz') {
+        unlock('BLITZ_SPEED');
+      }
+      if (this.gameMode === 'p2p') {
+        unlock('P2P_GHOST');
+      }
+      if (this.stats.currentStreak >= 3) {
+        unlock('STREAK_3');
+      }
+      if (this.gameType === 'grid4') {
+        unlock('GRID_ARCHITECT');
+      }
+    }
+
+    if (this.gameType === 'infinity' && this.roundMoveCount >= 8) {
+      unlock('INFINITY_SURVIVOR');
+    }
+
+    if (newlyUnlocked.length > 0) {
+      this.saveAchievements();
+    }
+    return newlyUnlocked;
+  }
+
+  recordGameOutcome(isWin, isTie, isLoss) {
+    this.stats.totalMatches++;
+    if (isWin) {
+      this.stats.wins++;
+      this.stats.currentStreak++;
+      if (this.stats.currentStreak > this.stats.maxStreak) {
+        this.stats.maxStreak = this.stats.currentStreak;
+      }
+    } else if (isLoss) {
+      this.stats.losses++;
+      this.stats.currentStreak = 0;
+    } else if (isTie) {
+      this.stats.ties++;
+    }
+
+    this.saveStats();
+    return this.checkAchievements(isWin, isTie, isLoss);
+  }
+
   resetRound() {
     const totalCells = this.gridSize * this.gridSize;
     this.board = Array(totalCells).fill(null);
@@ -197,6 +325,7 @@ class GameState {
     this.moveHistory = [];
     this.ghostMoves = { X: [], O: [] };
     this.blitzTimeRemaining = this.blitzDuration;
+    this.roundMoveCount = 0;
   }
 
   resetScores() {

@@ -55,8 +55,12 @@
           <span class="logo-title">CYBER XO</span>
         </div>
 
-        <!-- Controls: BGM Music & Sound Effects -->
+        <!-- Controls: Stats, BGM Music & Sound Effects -->
         <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button class="stats-btn" id="btn-open-stats" aria-label="Кибер-статистика" title="Статистика и Достижения">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-6h2v6zm4 0h-2v-4h2v4zm-8 0H6v-2h2v2z"/></svg>
+          </button>
+
           <button class="bgm-btn" aria-label="Вкл/Выкл фоновую музыку" title="Включить кибер-эмбиент">
             <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;">
               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
@@ -227,6 +231,10 @@
         <span class="hud-mode-pill" id="hud-mode-pill">Классика 3×3</span>
 
         <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button class="stats-btn hud-stats-btn" id="btn-hud-stats" aria-label="Кибер-статистика" title="Статистика и Достижения">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-6h2v6zm4 0h-2v-4h2v4zm-8 0H6v-2h2v2z"/></svg>
+          </button>
+
           <button class="bgm-btn" aria-label="Вкл/Выкл фоновую музыку" title="Включить кибер-эмбиент">
             <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;">
               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
@@ -292,8 +300,28 @@
         <button class="btn-rematch-accept" id="btn-banner-accept" type="button">Принять</button>
       </div>
 
+      <!-- HUD Toast Alert (e.g. Side swap notification) -->
+      <div class="hud-toast-alert" id="hud-toast-alert" style="display: none;"></div>
+
+      <!-- Quick P2P Reactions Bar (shown only in P2P mode) -->
+      <div class="p2p-reactions-bar" id="p2p-reactions-bar" style="display: none;">
+        <span class="reactions-label">СИГНАЛЫ:</span>
+        <div class="reactions-chips">
+          <button class="reaction-btn" data-reaction="⚡" type="button" title="Молния">⚡</button>
+          <button class="reaction-btn" data-reaction="🔥" type="button" title="Огонь">🔥</button>
+          <button class="reaction-btn" data-reaction="💀" type="button" title="Череп">💀</button>
+          <button class="reaction-btn" data-reaction="🤖" type="button" title="ИИ">🤖</button>
+          <button class="reaction-btn" data-reaction="GG WP" type="button">GG</button>
+          <button class="reaction-btn" data-reaction="ХОРОШ!" type="button">ХОРОШ!</button>
+          <button class="reaction-btn" data-reaction="ОЙ..." type="button">ОЙ...</button>
+        </div>
+      </div>
+
       <!-- 3D Perspective Board Container -->
       <div class="board-perspective" id="board-perspective">
+        <!-- Floating Hologram Reaction Overlay -->
+        <div class="reaction-overlay" id="reaction-overlay" aria-hidden="true"></div>
+
         <div class="board-container turn-x" id="board-container">
           
           <!-- Laser Victory Line SVG Layer -->
@@ -339,6 +367,55 @@
       <div class="modal-actions">
         <button class="modal-btn modal-btn-rematch" id="btn-modal-rematch" type="button">Сыграть снова</button>
         <button class="modal-btn modal-btn-close" id="btn-modal-close" type="button">Поле</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Achievement Unlocked Notification Toast Container -->
+  <div class="achievement-toast-container" id="achievement-toast-container" aria-live="polite"></div>
+
+  <!-- Cyber Stats & Achievements Modal -->
+  <aside class="modal-overlay stats-modal-overlay" id="stats-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-card stats-modal-card">
+      <div class="stats-modal-header">
+        <div class="stats-title-group">
+          <svg viewBox="0 0 24 24" class="stats-header-icon"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-6h2v6zm4 0h-2v-4h2v4zm-8 0H6v-2h2v2z"/></svg>
+          <h2 class="stats-modal-title">КИБЕР-СТАТИСТИКА</h2>
+        </div>
+        <button class="stats-modal-close-x" id="btn-stats-close-x" type="button">&times;</button>
+      </div>
+
+      <!-- Quick Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span class="stat-value" id="stat-matches">0</span>
+          <span class="stat-label">МАТЧЕЙ</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="stat-wins" style="color: var(--neon-x);">0</span>
+          <span class="stat-label">ПОБЕД</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="stat-winrate" style="color: var(--neon-gold);">0%</span>
+          <span class="stat-label">ВИНРЕЙТ</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="stat-streak" style="color: var(--neon-o);">0 🔥</span>
+          <span class="stat-label">СЕРИЯ (МАКС <span id="stat-max-streak">0</span>)</span>
+        </div>
+      </div>
+
+      <!-- Achievements Section -->
+      <div class="achievements-section">
+        <div class="section-label" style="margin-bottom: 0.5rem;">ДОСТИЖЕНИЯ (<span id="achievements-unlocked-count">0/7</span>)</div>
+        <div class="achievements-list" id="achievements-list">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <div class="stats-modal-actions">
+        <button class="stats-btn-reset" id="btn-stats-reset" type="button">Сбросить</button>
+        <button class="modal-btn modal-btn-rematch" id="btn-stats-close" type="button">ЗАКРЫТЬ</button>
       </div>
     </div>
   </aside>

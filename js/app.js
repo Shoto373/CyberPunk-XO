@@ -64,6 +64,7 @@ class CyberTicTacToe {
       state.p2pPlayerSymbol = symbol;
       state.setGameMode('p2p');
       ui.updateModeUI('p2p');
+      ui.setP2PReactionsVisibility(true);
       this.localRematchRequested = false;
       this.remoteRematchRequested = false;
       ui.setRematchState('idle');
@@ -82,13 +83,18 @@ class CyberTicTacToe {
       }
     };
 
+    p2p.onReactionCallback = (text) => {
+      sound.playReaction();
+      ui.showReaction(text, true);
+    };
+
     p2p.onRematchRequestCallback = () => {
       this.remoteRematchRequested = true;
       sound.playClick();
       if (this.localRematchRequested) {
-        // Both players agreed to rematch!
+        // Both players agreed to rematch! Swap sides for fairness
         p2p.sendRematchAccept();
-        this.startNewRound();
+        this.startNewRound(true);
       } else {
         // Opponent wants to play again; notify local player
         ui.setRematchState('incoming', 'Соперник хочет сыграть снова! (1/2)');
@@ -96,18 +102,19 @@ class CyberTicTacToe {
     };
 
     p2p.onRematchAcceptCallback = () => {
-      // Opponent confirmed rematch
-      this.startNewRound();
+      // Opponent confirmed rematch; swap sides
+      this.startNewRound(true);
     };
 
     p2p.onRematchCallback = () => {
-      this.startNewRound();
+      this.startNewRound(true);
     };
 
     p2p.onDisconnectCallback = () => {
       this.localRematchRequested = false;
       this.remoteRematchRequested = false;
       ui.setRematchState('idle');
+      ui.setP2PReactionsVisibility(false);
       if (ui.p2pStatusDot) ui.p2pStatusDot.classList.remove('connected');
       if (ui.p2pStatusText) ui.p2pStatusText.textContent = 'Соперник отключился от сессии';
     };
@@ -146,6 +153,7 @@ class CyberTicTacToe {
       chip.addEventListener('click', () => {
         const theme = chip.getAttribute('data-theme');
         sound.playClick();
+        sound.vibrateGlitch();
         state.setTheme(theme);
         ui.applyTheme(theme);
         ui.triggerGlitch();
@@ -156,6 +164,7 @@ class CyberTicTacToe {
     ui.btnToggleCrts.forEach(btn => {
       btn.addEventListener('click', () => {
         sound.playClick();
+        sound.vibrateGlitch();
         const isCrt = state.toggleCrt();
         ui.applyCrt(isCrt);
         ui.triggerGlitch();
@@ -206,6 +215,7 @@ class CyberTicTacToe {
           this.localRematchRequested = false;
           this.remoteRematchRequested = false;
           ui.setRematchState('idle');
+          ui.setP2PReactionsVisibility(false);
           state.setGameMode('pvp');
           ui.updateModeUI('pvp');
           this.startNewRound();
@@ -221,6 +231,7 @@ class CyberTicTacToe {
           this.localRematchRequested = false;
           this.remoteRematchRequested = false;
           ui.setRematchState('idle');
+          ui.setP2PReactionsVisibility(false);
           state.setGameMode('pve');
           ui.updateModeUI('pve');
           this.startNewRound();
@@ -336,6 +347,49 @@ class CyberTicTacToe {
     if (ui.btnBannerAccept) {
       ui.btnBannerAccept.addEventListener('click', () => {
         this.handleRematchClick();
+      });
+    }
+
+    // P2P Quick Reactions
+    ui.reactionBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = btn.getAttribute('data-reaction');
+        if (text && p2p.isConnected) {
+          sound.playReaction();
+          p2p.sendReaction(text);
+          ui.showReaction(text, false);
+        }
+      });
+    });
+
+    // Stats & Achievements Modal Handlers
+    const openStats = () => {
+      sound.playClick();
+      ui.showStatsModal(state);
+    };
+
+    if (ui.btnOpenStats) ui.btnOpenStats.addEventListener('click', openStats);
+    if (ui.btnHudStats) ui.btnHudStats.addEventListener('click', openStats);
+
+    if (ui.btnStatsClose) {
+      ui.btnStatsClose.addEventListener('click', () => {
+        sound.playClick();
+        ui.hideStatsModal();
+      });
+    }
+
+    if (ui.btnStatsCloseX) {
+      ui.btnStatsCloseX.addEventListener('click', () => {
+        sound.playClick();
+        ui.hideStatsModal();
+      });
+    }
+
+    if (ui.btnStatsReset) {
+      ui.btnStatsReset.addEventListener('click', () => {
+        sound.playClick();
+        state.resetAllStats();
+        ui.showStatsModal(state);
       });
     }
 
@@ -484,6 +538,35 @@ class CyberTicTacToe {
       sound.playDraw();
       ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol);
     }
+
+    // Record game outcome and check for achievements
+    let isWin = false;
+    let isTie = false;
+    let isLoss = false;
+
+    if (result.status === 'win') {
+      if (state.gameMode === 'pve') {
+        isWin = result.winner === 'X';
+        isLoss = result.winner === 'O';
+      } else if (state.gameMode === 'p2p') {
+        isWin = result.winner === state.p2pPlayerSymbol;
+        isLoss = result.winner !== state.p2pPlayerSymbol;
+      } else {
+        isWin = true; // In local PvP
+      }
+    } else if (result.status === 'tie') {
+      isTie = true;
+    }
+
+    const newlyUnlocked = state.recordGameOutcome(isWin, isTie, isLoss);
+    if (newlyUnlocked && newlyUnlocked.length > 0) {
+      newlyUnlocked.forEach((ach, index) => {
+        setTimeout(() => {
+          sound.playAchievement();
+          ui.showAchievementToast(ach);
+        }, index * 900 + 400);
+      });
+    }
   }
 
   /**
@@ -572,9 +655,9 @@ class CyberTicTacToe {
     this.localRematchRequested = true;
 
     if (this.remoteRematchRequested) {
-      // Opponent already proposed rematch, accept and start round
+      // Opponent already proposed rematch, accept and start round with side swap
       p2p.sendRematchAccept();
-      this.startNewRound();
+      this.startNewRound(true);
     } else {
       // We are the first to request rematch
       p2p.sendRematchRequest();
@@ -583,13 +666,20 @@ class CyberTicTacToe {
   }
 
   /**
-   * Starts a new round
+   * Starts a new round, with optional side swapping for P2P mode
    */
-  startNewRound() {
+  startNewRound(swapSides = false) {
     this.stopBlitzTimer();
     this.localRematchRequested = false;
     this.remoteRematchRequested = false;
     ui.setRematchState('idle');
+
+    // Auto-swap sides in P2P mode for competitive fairness
+    if (state.gameMode === 'p2p' && swapSides) {
+      const newSymbol = state.swapP2PSymbol();
+      ui.showToast(`🔄 СМЕНА СТОРОН: ТЕПЕРЬ ВЫ ( ${newSymbol} )`);
+    }
+
     state.resetRound();
     this.rebuildGameBoard();
     ui.clearBoard();

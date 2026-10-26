@@ -34,6 +34,7 @@ class P2PManager {
     this.onRematchCallback = null;
     this.onRematchRequestCallback = null;
     this.onRematchAcceptCallback = null;
+    this.onReactionCallback = null;
     this.onDisconnectCallback = null;
     this.onErrorCallback = null;
   }
@@ -292,6 +293,9 @@ class P2PManager {
       case 'MOVE':
         if (this.onMoveCallback) this.onMoveCallback(data.index);
         break;
+      case 'REACTION':
+        if (this.onReactionCallback) this.onReactionCallback(data.text);
+        break;
       case 'REMATCH_REQUEST':
         if (this.onRematchRequestCallback) this.onRematchRequestCallback();
         break;
@@ -338,6 +342,15 @@ class P2PManager {
 
   sendRematch() {
     this.sendRematchRequest();
+  }
+
+  sendReaction(text) {
+    const payload = { type: 'REACTION', text, room: this.roomCode };
+    if (this.connection && this.connection.open) {
+      this.connection.send(payload);
+    }
+    this.broadcastLocal(payload);
+    this.setStorageRoom('REACTION', this.roomCode + '-' + Date.now());
   }
 
   handleDisconnect() {

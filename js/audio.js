@@ -259,6 +259,7 @@ class SoundEngine {
    * High-tech laser whistle for Player X move
    */
   playMoveX() {
+    this.vibrateTap();
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;
@@ -291,6 +292,7 @@ class SoundEngine {
    * Deep plasma resonating tone for Player O move
    */
   playMoveO() {
+    this.vibrateTap();
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;
@@ -326,6 +328,7 @@ class SoundEngine {
    * Soft futuristic high-tech click
    */
   playClick() {
+    this.vibrate(8);
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;
@@ -352,6 +355,7 @@ class SoundEngine {
    * Ascending major cyber arpeggio fanfare for Victory
    */
   playWin() {
+    this.vibrateVictory();
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;
@@ -385,6 +389,7 @@ class SoundEngine {
    * Futuristic descending sigh for Draw/Tie
    */
   playDraw() {
+    this.vibrate([30, 40, 30]);
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;
@@ -411,6 +416,7 @@ class SoundEngine {
    * Shimmering dematerialization sound when a ghost mark dissolves
    */
   playDissolve() {
+    this.vibrate(15);
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;
@@ -438,6 +444,7 @@ class SoundEngine {
    * Subtle rhythmic click/tick for blitz timer
    */
   playTimerTick(isUrgent = false) {
+    if (isUrgent) this.vibrateWarning();
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;
@@ -463,9 +470,99 @@ class SoundEngine {
   }
 
   /**
+   * Haptic Feedback for Touch Devices
+   */
+  vibrate(pattern = 15) {
+    if ('vibrate' in navigator && !this.isMuted) {
+      try {
+        navigator.vibrate(pattern);
+      } catch (e) {}
+    }
+  }
+
+  vibrateTap() {
+    this.vibrate(12);
+  }
+
+  vibrateWarning() {
+    this.vibrate([20, 30, 20]);
+  }
+
+  vibrateVictory() {
+    this.vibrate([40, 50, 70, 40, 100]);
+  }
+
+  vibrateGlitch() {
+    this.vibrate([25, 20, 25]);
+  }
+
+  vibrateDefeat() {
+    this.vibrate([60, 40, 60]);
+  }
+
+  /**
+   * Hologram Reaction chirp sound for P2P multiplayer
+   */
+  playReaction() {
+    this.vibrate(18);
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(660, t);
+    osc.frequency.exponentialRampToValueAtTime(1320, t + 0.12);
+
+    gain.gain.setValueAtTime(0.28, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.14);
+  }
+
+  /**
+   * Achievement Unlocked cyber fanfare (Ascending crystal chime)
+   */
+  playAchievement() {
+    this.vibrate([30, 50, 50, 40, 80]);
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const notes = [659.25, 830.61, 987.77, 1318.51]; // E5, G#5, B5, E6
+    const startTime = this.ctx.currentTime + 0.02;
+
+    notes.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime + i * 0.08);
+
+      gain.gain.setValueAtTime(0, startTime + i * 0.08);
+      gain.gain.linearRampToValueAtTime(0.3, startTime + i * 0.08 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + i * 0.08 + 0.35);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(startTime + i * 0.08);
+      osc.stop(startTime + i * 0.08 + 0.35);
+    });
+  }
+
+  /**
    * Glitch alarm when Blitz timer expires
    */
   playTimerAlarm() {
+    this.vibrateDefeat();
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;

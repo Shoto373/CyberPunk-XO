@@ -2,6 +2,8 @@
  * UI.JS - DOM Rendering, 3D Board Tilt, SVG Mark Animations, Screen Navigation & HUD
  */
 
+import { ACHIEVEMENTS_LIST } from './state.js';
+
 class UIEngine {
   constructor() {
     // App & Screens
@@ -86,6 +88,29 @@ class UIEngine {
     this.gameRematchBanner = document.getElementById('game-rematch-banner');
     this.gameRematchText = document.getElementById('game-rematch-text');
     this.btnBannerAccept = document.getElementById('btn-banner-accept');
+
+    // Stats & Achievements Elements
+    this.btnOpenStats = document.getElementById('btn-open-stats');
+    this.btnHudStats = document.getElementById('btn-hud-stats');
+    this.statsModal = document.getElementById('stats-modal');
+    this.btnStatsClose = document.getElementById('btn-stats-close');
+    this.btnStatsCloseX = document.getElementById('btn-stats-close-x');
+    this.btnStatsReset = document.getElementById('btn-stats-reset');
+    this.statMatches = document.getElementById('stat-matches');
+    this.statWins = document.getElementById('stat-wins');
+    this.statWinrate = document.getElementById('stat-winrate');
+    this.statStreak = document.getElementById('stat-streak');
+    this.statMaxStreak = document.getElementById('stat-max-streak');
+    this.achievementsUnlockedCount = document.getElementById('achievements-unlocked-count');
+    this.achievementsList = document.getElementById('achievements-list');
+    this.achievementToastContainer = document.getElementById('achievement-toast-container');
+
+    // Reactions & HUD Alerts
+    this.hudToastAlert = document.getElementById('hud-toast-alert');
+    this.p2pReactionsBar = document.getElementById('p2p-reactions-bar');
+    this.reactionOverlay = document.getElementById('reaction-overlay');
+    this.reactionBtns = Array.from(document.querySelectorAll('.reaction-btn'));
+    this._toastTimer = null;
 
     this.initTilt();
   }
@@ -649,6 +674,111 @@ class UIEngine {
         `;
         this.btnNewRound.classList.remove('pending', 'highlight');
       }
+    }
+  }
+
+  /**
+   * Displays cyber stats & achievements modal
+   */
+  showStatsModal(gameState) {
+    if (!this.statsModal) return;
+    const stats = gameState.stats;
+    const winrate = stats.totalMatches > 0 
+      ? Math.round((stats.wins / stats.totalMatches) * 100) 
+      : 0;
+
+    if (this.statMatches) this.statMatches.textContent = stats.totalMatches;
+    if (this.statWins) this.statWins.textContent = stats.wins;
+    if (this.statWinrate) this.statWinrate.textContent = `${winrate}%`;
+    if (this.statStreak) this.statStreak.textContent = `${stats.currentStreak} 🔥`;
+    if (this.statMaxStreak) this.statMaxStreak.textContent = stats.maxStreak;
+
+    const unlocked = gameState.achievements || [];
+    if (this.achievementsUnlockedCount) {
+      this.achievementsUnlockedCount.textContent = `${unlocked.length}/${ACHIEVEMENTS_LIST.length}`;
+    }
+
+    if (this.achievementsList) {
+      this.achievementsList.innerHTML = ACHIEVEMENTS_LIST.map(ach => {
+        const isUnlocked = unlocked.includes(ach.id);
+        return `
+          <div class="achievement-item ${isUnlocked ? 'unlocked' : ''}">
+            <div class="achievement-icon">${ach.icon}</div>
+            <div class="achievement-info">
+              <span class="achievement-title">${ach.title}</span>
+              <span class="achievement-desc">${ach.desc}</span>
+            </div>
+            <span class="achievement-status" style="color: ${isUnlocked ? 'var(--neon-gold)' : 'var(--text-muted)'}">
+              ${isUnlocked ? '✓' : '🔒'}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    this.statsModal.classList.add('open');
+    this.statsModal.setAttribute('aria-hidden', 'false');
+  }
+
+  hideStatsModal() {
+    if (this.statsModal) {
+      this.statsModal.classList.remove('open');
+      this.statsModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  /**
+   * Displays temporary in-game alert banner
+   */
+  showToast(message) {
+    if (!this.hudToastAlert) return;
+    this.hudToastAlert.textContent = message;
+    this.hudToastAlert.style.display = 'block';
+    
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => {
+      this.hudToastAlert.style.display = 'none';
+    }, 2800);
+  }
+
+  /**
+   * Renders floating achievement unlock card
+   */
+  showAchievementToast(achievement) {
+    if (!this.achievementToastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = 'achievement-toast';
+    toast.innerHTML = `
+      <div class="achievement-toast-icon">${achievement.icon}</div>
+      <div class="achievement-toast-body">
+        <span class="achievement-toast-header">ДОСТИЖЕНИЕ РАЗБЛОКИРОВАНО</span>
+        <span class="achievement-toast-title">${achievement.title}</span>
+        <span class="achievement-toast-desc">${achievement.desc}</span>
+      </div>
+    `;
+    this.achievementToastContainer.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 4200);
+  }
+
+  /**
+   * Spawns floating hologram reaction bubble
+   */
+  showReaction(text, isRemote = false) {
+    if (!this.reactionOverlay) return;
+    const bubble = document.createElement('div');
+    bubble.className = `floating-reaction ${isRemote ? 'from-remote' : 'from-local'}`;
+    bubble.textContent = `${isRemote ? 'СОПЕРНИК: ' : 'ВЫ: '}${text}`;
+    this.reactionOverlay.appendChild(bubble);
+    setTimeout(() => {
+      if (bubble.parentNode) bubble.parentNode.removeChild(bubble);
+    }, 2200);
+  }
+
+  setP2PReactionsVisibility(isVisible) {
+    if (this.p2pReactionsBar) {
+      this.p2pReactionsBar.style.display = isVisible ? 'flex' : 'none';
     }
   }
 }
