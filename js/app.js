@@ -54,7 +54,7 @@ class CyberTicTacToe {
   registerServiceWorker() {
     if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=3.3.1')
+        navigator.serviceWorker.register('./sw.js?v=3.3.2')
           .then((registration) => {
             // Check for updates immediately
             if (registration) {

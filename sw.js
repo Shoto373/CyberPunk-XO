@@ -2,7 +2,7 @@
  * SW.JS - Service Worker for Offline Cyber XO PWA
  */
 
-const CACHE_NAME = 'cyber-xo-v3.3.1';
+const CACHE_NAME = 'cyber-xo-v3.3.2';
 const STATIC_ASSETS = [
   './',
   './index.html',

@@ -492,3 +492,38 @@
   border-color: var(--neon-gold);
   box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
 }
+/* --------------------------------------------------------------------------
+   12. Lightning Strike Animation (Skin: lightning_x)
+   -------------------------------------------------------------------------- */
+.animate-lightning {
+  transform-origin: 50% 50%;
+  animation: lightning-strike 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+@keyframes lightning-strike {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) translateY(-24px);
+    filter: brightness(3.5) drop-shadow(0 0 25px #ffffff);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.18) translateY(2px);
+    filter: brightness(2.5) drop-shadow(0 0 20px var(--neon-x-glow));
+  }
+  65% {
+    transform: scale(0.96) translateY(-1px);
+    filter: brightness(1.6);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: brightness(1) drop-shadow(0 0 12px var(--neon-x-glow));
+  }
+}
+
+.animate-lightning-arc {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: laser-line 0.24s cubic-bezier(0.2, 0.8, 0.4, 1) 0.1s forwards;
+}

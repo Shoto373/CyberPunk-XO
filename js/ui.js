@@ -252,7 +252,10 @@ class UIEngine {
       case 'lightning_x':
         return `
           <svg class="mark-svg mark-x skin-lightning" viewBox="0 0 100 100">
-            <polygon class="animate-x-flash" points="56,12 26,52 48,52 38,88 74,44 52,44" fill="var(--neon-x)" stroke="#fff" stroke-width="3" stroke-linejoin="round" style="filter: drop-shadow(0 0 10px var(--neon-x-glow))"/>
+            <polygon class="animate-lightning" points="58,10 24,50 48,50 36,90 76,46 52,46" fill="var(--neon-x)" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" style="filter: drop-shadow(0 0 12px var(--neon-x-glow))"/>
+            <line class="animate-lightning-arc" x1="18" y1="20" x2="36" y2="38" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" style="filter: drop-shadow(0 0 8px var(--neon-x-glow))"/>
+            <line class="animate-lightning-arc" x1="82" y1="80" x2="64" y2="62" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" style="filter: drop-shadow(0 0 8px var(--neon-x-glow))"/>
+            <circle class="laser-flash-circle animate-x-flash" cx="50" cy="48" r="9" fill="#ffffff"/>
           </svg>
         `;
       case 'skull_x':
