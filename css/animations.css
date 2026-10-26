@@ -255,29 +255,28 @@
 }
 
 .glitch-flash {
-  animation: cyber-glitch-hit 0.35s ease-out both;
+  animation: cyber-glitch-hit 0.2s ease-out both;
 }
 
 @keyframes cyber-glitch-hit {
   0% {
     transform: translate(0);
-    filter: hue-rotate(0deg);
+    filter: none;
   }
-  20% {
-    transform: translate(-3px, 2px) skewX(2deg);
-    filter: drop-shadow(-3px 0 var(--neon-x)) drop-shadow(3px 0 var(--neon-o)) hue-rotate(90deg);
+  25% {
+    transform: translate(-1.5px, 0.5px);
+    filter: drop-shadow(-1.5px 0 rgba(0, 240, 255, 0.5)) drop-shadow(1.5px 0 rgba(255, 42, 109, 0.5));
   }
-  40% {
-    transform: translate(3px, -2px) skewX(-2deg);
-    filter: drop-shadow(3px 0 var(--neon-x)) drop-shadow(-3px 0 var(--neon-o)) hue-rotate(180deg);
+  50% {
+    transform: translate(1.5px, -0.5px);
+    filter: drop-shadow(1.5px 0 rgba(0, 240, 255, 0.5)) drop-shadow(-1.5px 0 rgba(255, 42, 109, 0.5));
   }
-  60% {
-    transform: translate(-2px, 1px);
-    filter: drop-shadow(-2px 0 var(--neon-gold)) hue-rotate(270deg);
+  75% {
+    transform: translate(-0.5px, 0);
   }
   100% {
     transform: translate(0);
-    filter: hue-rotate(360deg);
+    filter: none;
   }
 }
 

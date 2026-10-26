@@ -19,7 +19,10 @@ html, body {
 
 body {
   background-color: var(--bg-deep);
-  background-image: var(--bg-radial);
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    var(--bg-radial);
+  background-size: 24px 24px, 100% 100%;
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 16px;

@@ -69,19 +69,19 @@ class ParticleSystem {
 
   createBgParticles() {
     this.bgParticles = [];
-    // Adjust density based on screen dimensions
-    const count = Math.min(Math.floor((this.width * this.height) / 16000), 65);
-    const colors = ['#00f3ff', '#ff007f', '#8b5cf6', '#38bdf8'];
+    // Gentle ambient cyber-dust
+    const count = Math.min(Math.floor((this.width * this.height) / 22000), 40);
+    const colors = ['#00f0ff', '#38bdf8', '#64748b', '#94a3b8'];
 
     for (let i = 0; i < count; i++) {
       this.bgParticles.push({
         x: Math.random() * this.width,
         y: Math.random() * this.height,
-        vx: (Math.random() - 0.5) * 0.45,
-        vy: (Math.random() - 0.5) * 0.45,
-        radius: Math.random() * 1.8 + 1,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: -Math.random() * 0.35 - 0.1, // gentle upward drift
+        radius: Math.random() * 0.8 + 0.6,
         color: colors[Math.floor(Math.random() * colors.length)],
-        baseAlpha: Math.random() * 0.4 + 0.2
+        baseAlpha: Math.random() * 0.25 + 0.08
       });
     }
   }
@@ -98,38 +98,9 @@ class ParticleSystem {
 
     const count = this.bgParticles.length;
 
-    // Draw connection lines
-    for (let i = 0; i < count; i++) {
-      for (let j = i + 1; j < count; j++) {
-        const dx = this.bgParticles[i].x - this.bgParticles[j].x;
-        const dy = this.bgParticles[i].y - this.bgParticles[j].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < 110) {
-          const alpha = (1 - dist / 110) * 0.16;
-          this.bgCtx.strokeStyle = `rgba(0, 243, 255, ${alpha})`;
-          this.bgCtx.lineWidth = 0.8;
-          this.bgCtx.beginPath();
-          this.bgCtx.moveTo(this.bgParticles[i].x, this.bgParticles[i].y);
-          this.bgCtx.lineTo(this.bgParticles[j].x, this.bgParticles[j].y);
-          this.bgCtx.stroke();
-        }
-      }
-    }
-
-    // Update & draw particles
+    // Subtle ambient cyber-dust (no distracting constellation lines)
     for (let i = 0; i < count; i++) {
       const p = this.bgParticles[i];
-
-      // Mouse repulsion/attraction force
-      const mdx = p.x - this.mouse.x;
-      const mdy = p.y - this.mouse.y;
-      const mDist = Math.sqrt(mdx * mdx + mdy * mdy);
-      if (mDist < 120 && mDist > 0) {
-        const force = (120 - mDist) / 120;
-        p.x += (mdx / mDist) * force * 1.5;
-        p.y += (mdy / mDist) * force * 1.5;
-      }
 
       p.x += p.vx;
       p.y += p.vy;
@@ -141,17 +112,13 @@ class ParticleSystem {
       if (p.y > this.height) p.y = 0;
 
       this.bgCtx.fillStyle = p.color;
-      this.bgCtx.shadowColor = p.color;
-      this.bgCtx.shadowBlur = 8;
       this.bgCtx.globalAlpha = p.baseAlpha;
-
       this.bgCtx.beginPath();
       this.bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       this.bgCtx.fill();
     }
 
     this.bgCtx.globalAlpha = 1;
-    this.bgCtx.shadowBlur = 0;
   }
 
   /**

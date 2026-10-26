@@ -285,7 +285,7 @@ class UIEngine {
       this.labelO.textContent = (state.p2pPlayerSymbol === 'O') ? 'ВЫ (O)' : 'СОПЕРНИК (O)';
     } else {
       this.labelX.textContent = 'ВЫ (X)';
-      this.labelO.textContent = 'КИБЕР ИИ';
+      this.labelO.textContent = 'ИИ (O)';
     }
 
     if (!state.isGameOver) {
@@ -407,12 +407,12 @@ class UIEngine {
       `;
 
       this.modalTitle.style.color = color;
-      this.modalTitle.textContent = 'ПОБЕДА!';
+      this.modalTitle.textContent = 'ПОБЕДА';
 
       if (gameMode === 'pve') {
-        this.modalSubtitle.textContent = isX ? 'Вы превзошли квантовый алгоритм!' : 'Кибернетический ИИ одержал верх';
+        this.modalSubtitle.textContent = isX ? 'Вы победили кибер-ИИ!' : 'ИИ одержал победу в раунде';
       } else {
-        this.modalSubtitle.textContent = isX ? 'Игрок 1 (X) забирает раунд!' : 'Игрок 2 (O) побеждает!';
+        this.modalSubtitle.textContent = isX ? 'Победил игрок X' : 'Победил игрок O';
       }
     } else {
       this.modalSymbol.innerHTML = `
@@ -422,8 +422,8 @@ class UIEngine {
         </svg>
       `;
       this.modalTitle.style.color = 'var(--neon-gold)';
-      this.modalTitle.textContent = 'НИЧЬЯ!';
-      this.modalSubtitle.textContent = 'Равновесие сил в киберпространстве';
+      this.modalTitle.textContent = 'НИЧЬЯ';
+      this.modalSubtitle.textContent = 'Боевая ничья в раунде';
     }
 
     setTimeout(() => {
@@ -506,14 +506,14 @@ class UIEngine {
     });
 
     const labels = {
-      'classic': 'КЛАССИКА 3x3',
-      'infinity': 'БЕСКОНЕЧНЫЙ XO',
-      'blitz': 'КИБЕР-БЛИЦ 5С',
-      'grid4': 'СЕТКА 4x4'
+      'classic': 'Классика 3×3',
+      'infinity': 'Бесконечный',
+      'blitz': 'Блиц 5с',
+      'grid4': 'Сетка 4×4'
     };
 
     if (this.hudModePill) {
-      this.hudModePill.textContent = labels[selectedType] || 'КЛАССИКА';
+      this.hudModePill.textContent = labels[selectedType] || 'Классика';
     }
   }
 

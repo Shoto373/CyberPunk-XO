@@ -76,9 +76,8 @@
 
       <!-- Hero Title -->
       <div class="menu-hero">
-        <span class="menu-badge">CYBERPUNK XO // V3.0</span>
-        <h1 class="menu-title-glitch">TIC-TAC-TOE</h1>
-        <p class="menu-subtitle">Выберите режим тактической симуляции:</p>
+        <h1 class="menu-title">CYBER XO</h1>
+        <p class="menu-subtitle">Тактическая кибер-дуэль</p>
       </div>
 
       <!-- Mode Cards Grid -->
@@ -86,58 +85,66 @@
         <!-- Mode 1: Classic -->
         <div class="mode-card selected" data-mode-type="classic" role="button" tabindex="0">
           <div class="mode-card-header">
-            <span class="mode-card-icon">⚔️</span>
-            <span class="mode-card-tag">СТАНДАРТ</span>
+            <span class="mode-card-icon">
+              <svg viewBox="0 0 24 24" class="mode-svg"><path d="M4 8h16M4 16h16M8 4v16M16 4v16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </span>
+            <span class="mode-card-tag">3×3</span>
           </div>
-          <h2 class="mode-card-title">Классика 3x3</h2>
-          <p class="mode-card-desc">Чистая стратегия. Идеально для дуэлей.</p>
+          <h2 class="mode-card-title">Классика</h2>
+          <p class="mode-card-desc">Стандартные правила до трех в ряд</p>
         </div>
 
         <!-- Mode 2: Infinity XO -->
         <div class="mode-card" data-mode-type="infinity" role="button" tabindex="0">
           <div class="mode-card-header">
-            <span class="mode-card-icon">♾️</span>
-            <span class="mode-card-tag">ТОП</span>
+            <span class="mode-card-icon">
+              <svg viewBox="0 0 24 24" class="mode-svg"><path d="M18.178 8c5.096 0 5.096 8 0 8-2.613 0-4.522-3.844-6.178-8-1.656 4.156-3.565 8-6.178 8-5.096 0-5.096-8 0-8 2.613 0 4.522 3.844 6.178 8 1.656-4.156 3.565-8 6.178-8z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+            </span>
+            <span class="mode-card-tag">3 МЕТКИ</span>
           </div>
-          <h2 class="mode-card-title">Infinity XO</h2>
-          <p class="mode-card-desc">Максимум 3 метки! 4-я растворяет 1-ю. Без ничьих!</p>
+          <h2 class="mode-card-title">Бесконечный</h2>
+          <p class="mode-card-desc">Четвертый ход растворяет первый</p>
         </div>
 
         <!-- Mode 3: Blitz -->
         <div class="mode-card" data-mode-type="blitz" role="button" tabindex="0">
           <div class="mode-card-header">
-            <span class="mode-card-icon">⚡</span>
+            <span class="mode-card-icon">
+              <svg viewBox="0 0 24 24" class="mode-svg"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>
+            </span>
             <span class="mode-card-tag">5 СЕК</span>
           </div>
           <h2 class="mode-card-title">Кибер-Блиц</h2>
-          <p class="mode-card-desc">Таймер на ход. Нарастающий пульс. Не медли!</p>
+          <p class="mode-card-desc">Ограничение времени на каждый ход</p>
         </div>
 
         <!-- Mode 4: 4x4 Grid -->
         <div class="mode-card" data-mode-type="grid4" role="button" tabindex="0">
           <div class="mode-card-header">
-            <span class="mode-card-icon">📐</span>
-            <span class="mode-card-tag">ТАКТИК</span>
+            <span class="mode-card-icon">
+              <svg viewBox="0 0 24 24" class="mode-svg"><path d="M3 7.5h18M3 12h18M3 16.5h18M7.5 3v18M12 3v18M16.5 3v18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </span>
+            <span class="mode-card-tag">4×4</span>
           </div>
-          <h2 class="mode-card-title">Сетка 4x4</h2>
-          <p class="mode-card-desc">Масштабное поле 16 клеток. Собери 4 в ряд!</p>
+          <h2 class="mode-card-title">Сетка 4×4</h2>
+          <p class="mode-card-desc">Поле 16 клеток, четыре в ряд</p>
         </div>
       </div>
 
       <!-- Opponent & Difficulty Config -->
       <div class="menu-config-group">
-        <div class="section-label">ПАРАМЕТРЫ МАТЧА</div>
+        <div class="section-label">ФОРМАТ МАТЧА</div>
         
         <div class="controls-bar">
           <div class="mode-toggle" id="mode-toggle" data-mode="pve">
             <div class="mode-slider" aria-hidden="true"></div>
-            <button class="mode-btn" id="btn-mode-pvp" type="button">1 VS 1 (PVP)</button>
-            <button class="mode-btn active" id="btn-mode-pve" type="button">VS AI (PVE)</button>
-            <button class="mode-btn" id="btn-mode-p2p" type="button">ОНЛАЙН (P2P)</button>
+            <button class="mode-btn" id="btn-mode-pvp" type="button">Вдвоём</button>
+            <button class="mode-btn active" id="btn-mode-pve" type="button">С ботом</button>
+            <button class="mode-btn" id="btn-mode-p2p" type="button">По сети</button>
           </div>
 
           <div class="difficulty-chips" id="difficulty-chips">
-            <button class="chip-btn" id="chip-easy" data-diff="easy" type="button">Новичок</button>
+            <button class="chip-btn" id="chip-easy" data-diff="easy" type="button">Легкий</button>
             <button class="chip-btn" id="chip-medium" data-diff="medium" type="button">Тактик</button>
             <button class="chip-btn active" id="chip-unbeatable" data-diff="unbeatable" type="button">Мастер</button>
           </div>
@@ -146,13 +153,14 @@
         <!-- P2P Room Panel (displayed when P2P mode is selected) -->
         <div class="p2p-panel" id="p2p-panel">
           <button class="p2p-btn p2p-btn-host" id="btn-p2p-host" type="button">
-            <span>🌐</span> СОЗДАТЬ ОНЛАЙН-КОМНАТУ
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            СОЗДАТЬ КОМНАТУ
           </button>
           <div class="p2p-room-box" id="p2p-room-box">
-            <span style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">КОД ВАШЕЙ КОМНАТЫ:</span>
+            <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Код вашей комнаты:</span>
             <div class="p2p-code-badge" id="p2p-code-badge">------</div>
             <button class="p2p-btn" id="btn-p2p-copy" type="button" style="width: 100%;">
-              <span>🔗</span> СКОПИРОВАТЬ ССЫЛКУ-ПРИГЛАШЕНИЕ
+              <span>🔗</span> Скопировать ссылку
             </button>
           </div>
           <div style="display: flex; align-items: center; gap: 0.5rem; margin: 0.2rem 0;">
@@ -161,7 +169,7 @@
             <div style="flex: 1; height: 1px; background: var(--surface-glass-border);"></div>
           </div>
           <div class="p2p-join-row">
-            <input class="p2p-input" id="input-p2p-code" type="text" placeholder="КОД (6 СИМВОЛОВ)" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="characters">
+            <input class="p2p-input" id="input-p2p-code" type="text" placeholder="КОД КОМНАТЫ" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="characters">
             <button class="p2p-btn" id="btn-p2p-join" type="button">ВОЙТИ</button>
           </div>
           <div class="p2p-status-text" id="p2p-status-row">
@@ -174,9 +182,9 @@
       <!-- Theme & CRT Visual Customization -->
       <div class="theme-selector-group">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-          <div class="section-label" style="margin-bottom: 0;">НЕОНОВЫЙ СКИН</div>
+          <div class="section-label" style="margin-bottom: 0;">ТЕМА</div>
           <button class="crt-toggle-btn" type="button">
-            <span>📺</span> CRT FX
+            CRT ЭФФЕКТ
           </button>
         </div>
 
@@ -188,7 +196,7 @@
             <span class="theme-dot matrix"></span> Матрица
           </button>
           <button class="theme-chip" data-theme="outrun" type="button">
-            <span class="theme-dot outrun"></span> Аутран
+            <span class="theme-dot outrun"></span> Закат
           </button>
           <button class="theme-chip" data-theme="blood" type="button">
             <span class="theme-dot blood"></span> Блад
@@ -198,8 +206,8 @@
 
       <!-- Start Game Big Button -->
       <button class="btn-launch-game" id="btn-start-game" type="button">
-        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        НАЧАТЬ СИМУЛЯЦИЮ
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;"><path d="M8 5v14l11-7z"/></svg>
+        ИГРАТЬ
       </button>
 
     </section>
@@ -216,7 +224,7 @@
           МЕНЮ
         </button>
 
-        <span class="hud-mode-pill" id="hud-mode-pill">КЛАССИКА 3x3</span>
+        <span class="hud-mode-pill" id="hud-mode-pill">Классика 3×3</span>
 
         <div style="display: flex; gap: 0.5rem; align-items: center;">
           <button class="bgm-btn" aria-label="Вкл/Выкл фоновую музыку" title="Включить кибер-эмбиент">
@@ -257,17 +265,17 @@
         <div class="score-card player-o" id="card-o">
           <div class="card-header">
             <span class="card-avatar">◯</span>
-            <span class="card-label" id="label-o">КИБЕР ИИ</span>
+            <span class="card-label" id="label-o">ИИ (O)</span>
           </div>
           <span class="card-score" id="score-o">0</span>
-          <span class="thinking-badge" id="thinking-badge">АНАЛИЗ...</span>
+          <span class="thinking-badge" id="thinking-badge">думает...</span>
         </div>
       </section>
 
       <!-- Blitz Countdown Timer Bar (Shown in Blitz Mode) -->
       <div class="blitz-timer-container" id="blitz-timer-container">
         <div class="blitz-header">
-          <span class="blitz-label">⏱ ВРЕМЯ НА ХОД</span>
+          <span class="blitz-label">ВРЕМЯ:</span>
           <span class="blitz-time-text" id="blitz-time-text">5.0s</span>
         </div>
         <div class="blitz-bar-track">
@@ -310,12 +318,12 @@
   <aside class="modal-overlay" id="result-modal" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="modal-card">
       <div class="modal-symbol" id="modal-symbol"></div>
-      <h2 class="modal-title" id="modal-title">ПОБЕДА!</h2>
-      <p class="modal-subtitle" id="modal-subtitle">Игрок X сокрушил соперника</p>
+      <h2 class="modal-title" id="modal-title">ПОБЕДА</h2>
+      <p class="modal-subtitle" id="modal-subtitle">Победил игрок X</p>
       
       <div class="modal-actions">
-        <button class="modal-btn modal-btn-rematch" id="btn-modal-rematch" type="button">Реванш</button>
-        <button class="modal-btn modal-btn-close" id="btn-modal-close" type="button">Посмотреть поле</button>
+        <button class="modal-btn modal-btn-rematch" id="btn-modal-rematch" type="button">Сыграть снова</button>
+        <button class="modal-btn modal-btn-close" id="btn-modal-close" type="button">Поле</button>
       </div>
     </div>
   </aside>
