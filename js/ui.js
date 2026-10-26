@@ -77,9 +77,15 @@ class UIEngine {
     this.modal = document.getElementById('result-modal');
     this.modalSymbol = document.getElementById('modal-symbol');
     this.modalTitle = document.getElementById('modal-title');
-    this.modalSubtitle = document.getElementById('modal-subtitle');
     this.btnModalRematch = document.getElementById('btn-modal-rematch');
     this.btnModalClose = document.getElementById('btn-modal-close');
+
+    // Rematch Notification Elements (P2P mode)
+    this.modalRematchStatus = document.getElementById('modal-rematch-status');
+    this.modalRematchText = document.getElementById('modal-rematch-text');
+    this.gameRematchBanner = document.getElementById('game-rematch-banner');
+    this.gameRematchText = document.getElementById('game-rematch-text');
+    this.btnBannerAccept = document.getElementById('btn-banner-accept');
 
     this.initTilt();
   }
@@ -390,7 +396,7 @@ class UIEngine {
     }, 500);
   }
 
-  showResultModal(result, gameMode) {
+  showResultModal(result, gameMode, playerSymbol = null) {
     if (result.status === 'win') {
       const isX = result.winner === 'X';
       const color = isX ? 'var(--neon-x)' : 'var(--neon-o)';
@@ -411,6 +417,9 @@ class UIEngine {
 
       if (gameMode === 'pve') {
         this.modalSubtitle.textContent = isX ? 'Вы победили кибер-ИИ!' : 'ИИ одержал победу в раунде';
+      } else if (gameMode === 'p2p' && playerSymbol) {
+        const isMe = result.winner === playerSymbol;
+        this.modalSubtitle.textContent = isMe ? 'Вы победили соперника в сети!' : 'Соперник одержал победу в раунде';
       } else {
         this.modalSubtitle.textContent = isX ? 'Победил игрок X' : 'Победил игрок O';
       }
@@ -574,6 +583,73 @@ class UIEngine {
     setTimeout(() => {
       this.appContainer.classList.remove('glitch-flash');
     }, 380);
+  }
+
+  /**
+   * Updates UI for mutual P2P rematch flow
+   * @param {'idle' | 'pending' | 'incoming'} stateType
+   * @param {string} message
+   */
+  setRematchState(stateType, message = '') {
+    if (stateType === 'pending') {
+      // Local player offered rematch, waiting for remote confirmation
+      if (this.modalRematchStatus) {
+        this.modalRematchStatus.style.display = 'flex';
+        if (this.modalRematchText) this.modalRematchText.textContent = message || 'Вы предложили реванш. Ждём соперника...';
+      }
+      if (this.btnModalRematch) {
+        this.btnModalRematch.textContent = 'Ожидание... (1/2)';
+        this.btnModalRematch.classList.add('pending');
+        this.btnModalRematch.classList.remove('highlight');
+      }
+      if (this.btnNewRound) {
+        this.btnNewRound.textContent = 'Ожидание... (1/2)';
+        this.btnNewRound.classList.add('pending');
+        this.btnNewRound.classList.remove('highlight');
+      }
+      if (this.gameRematchBanner) {
+        this.gameRematchBanner.style.display = 'none';
+      }
+    } else if (stateType === 'incoming') {
+      // Remote opponent offered rematch, local player can accept
+      if (this.modalRematchStatus) {
+        this.modalRematchStatus.style.display = 'flex';
+        if (this.modalRematchText) this.modalRematchText.textContent = message || 'Соперник хочет сыграть снова! (1/2)';
+      }
+      if (this.btnModalRematch) {
+        this.btnModalRematch.textContent = 'Принять реванш';
+        this.btnModalRematch.classList.remove('pending');
+        this.btnModalRematch.classList.add('highlight');
+      }
+      if (this.btnNewRound) {
+        this.btnNewRound.textContent = 'Принять реванш';
+        this.btnNewRound.classList.remove('pending');
+        this.btnNewRound.classList.add('highlight');
+      }
+      if (this.gameRematchBanner) {
+        this.gameRematchBanner.style.display = 'flex';
+        if (this.gameRematchText) this.gameRematchText.textContent = message || 'Соперник предлагает реванш!';
+      }
+    } else {
+      // Reset to idle
+      if (this.modalRematchStatus) {
+        this.modalRematchStatus.style.display = 'none';
+      }
+      if (this.gameRematchBanner) {
+        this.gameRematchBanner.style.display = 'none';
+      }
+      if (this.btnModalRematch) {
+        this.btnModalRematch.textContent = 'Сыграть снова';
+        this.btnModalRematch.classList.remove('pending', 'highlight');
+      }
+      if (this.btnNewRound) {
+        this.btnNewRound.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          Новый раунд
+        `;
+        this.btnNewRound.classList.remove('pending', 'highlight');
+      }
+    }
   }
 }
 

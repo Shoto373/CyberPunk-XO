@@ -32,6 +32,8 @@ class P2PManager {
     this.onConnectedCallback = null;
     this.onMoveCallback = null;
     this.onRematchCallback = null;
+    this.onRematchRequestCallback = null;
+    this.onRematchAcceptCallback = null;
     this.onDisconnectCallback = null;
     this.onErrorCallback = null;
   }
@@ -290,8 +292,16 @@ class P2PManager {
       case 'MOVE':
         if (this.onMoveCallback) this.onMoveCallback(data.index);
         break;
+      case 'REMATCH_REQUEST':
+        if (this.onRematchRequestCallback) this.onRematchRequestCallback();
+        break;
+      case 'REMATCH_ACCEPT':
+        if (this.onRematchAcceptCallback) this.onRematchAcceptCallback();
+        break;
       case 'REMATCH':
-        if (this.onRematchCallback) this.onRematchCallback();
+        // Fallback for general rematch
+        if (this.onRematchRequestCallback) this.onRematchRequestCallback();
+        else if (this.onRematchCallback) this.onRematchCallback();
         break;
       case 'DISCONNECT':
         this.handleDisconnect();
@@ -308,12 +318,26 @@ class P2PManager {
     this.setStorageRoom('MOVE', this.roomCode);
   }
 
-  sendRematch() {
-    const payload = { type: 'REMATCH', room: this.roomCode };
+  sendRematchRequest() {
+    const payload = { type: 'REMATCH_REQUEST', room: this.roomCode };
     if (this.connection && this.connection.open) {
       this.connection.send(payload);
     }
     this.broadcastLocal(payload);
+    this.setStorageRoom('REMATCH_REQUEST', this.roomCode);
+  }
+
+  sendRematchAccept() {
+    const payload = { type: 'REMATCH_ACCEPT', room: this.roomCode };
+    if (this.connection && this.connection.open) {
+      this.connection.send(payload);
+    }
+    this.broadcastLocal(payload);
+    this.setStorageRoom('REMATCH_ACCEPT', this.roomCode);
+  }
+
+  sendRematch() {
+    this.sendRematchRequest();
   }
 
   handleDisconnect() {

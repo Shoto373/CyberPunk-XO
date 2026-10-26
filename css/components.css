@@ -755,6 +755,86 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* Rematch status badges & banners (P2P mode) */
+.rematch-status-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--pill-radius);
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--neon-gold);
+  margin-top: 0.2rem;
+  letter-spacing: 0.5px;
+}
+
+.rematch-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--neon-gold);
+  box-shadow: 0 0 8px var(--neon-gold-glow);
+  animation: p2p-pulse 1s infinite alternate;
+}
+
+.modal-btn-rematch.pending,
+.action-btn.pending {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid var(--neon-gold) !important;
+  color: var(--neon-gold) !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.2) !important;
+  cursor: wait;
+}
+
+.modal-btn-rematch.highlight,
+.action-btn.highlight {
+  background: linear-gradient(135deg, var(--neon-gold), #f59e0b) !important;
+  color: #060913 !important;
+  font-weight: 900 !important;
+  box-shadow: 0 0 20px var(--neon-gold-glow) !important;
+  animation: bgm-pulse 1.2s infinite ease-in-out !important;
+}
+
+.game-rematch-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  background: rgba(19, 25, 42, 0.95);
+  border: 1px solid var(--neon-gold);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--neon-gold);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25);
+  backdrop-filter: blur(12px);
+  width: 100%;
+}
+
+.btn-rematch-accept {
+  background: var(--neon-gold);
+  color: #060913;
+  border: none;
+  border-radius: var(--pill-radius);
+  padding: 5px 14px;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-rematch-accept:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
 /* --------------------------------------------------------------------------
    7. Main Menu Screen Components
    -------------------------------------------------------------------------- */

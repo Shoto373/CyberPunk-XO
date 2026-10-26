@@ -283,6 +283,15 @@
         </div>
       </div>
 
+      <!-- In-Game Rematch Notification Banner (shown if modal closed during rematch offer) -->
+      <div class="game-rematch-banner" id="game-rematch-banner" style="display: none;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="rematch-pulse-dot"></span>
+          <span id="game-rematch-text">Соперник предлагает реванш!</span>
+        </div>
+        <button class="btn-rematch-accept" id="btn-banner-accept" type="button">Принять</button>
+      </div>
+
       <!-- 3D Perspective Board Container -->
       <div class="board-perspective" id="board-perspective">
         <div class="board-container turn-x" id="board-container">
@@ -321,6 +330,12 @@
       <h2 class="modal-title" id="modal-title">ПОБЕДА</h2>
       <p class="modal-subtitle" id="modal-subtitle">Победил игрок X</p>
       
+      <!-- Rematch Notice (P2P mode) -->
+      <div class="rematch-status-badge" id="modal-rematch-status" style="display: none;">
+        <span class="rematch-pulse-dot"></span>
+        <span id="modal-rematch-text">Соперник хочет реванш! (1/2)</span>
+      </div>
+
       <div class="modal-actions">
         <button class="modal-btn modal-btn-rematch" id="btn-modal-rematch" type="button">Сыграть снова</button>
         <button class="modal-btn modal-btn-close" id="btn-modal-close" type="button">Поле</button>
