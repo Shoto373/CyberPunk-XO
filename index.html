@@ -18,10 +18,10 @@
   <link rel="apple-touch-icon" href="icon-192.svg">
 
   <!-- Modular CSS Hierarchy -->
-  <link rel="stylesheet" href="css/variables.css?v=3.3.0">
-  <link rel="stylesheet" href="css/style.css?v=3.3.0">
-  <link rel="stylesheet" href="css/components.css?v=3.3.0">
-  <link rel="stylesheet" href="css/animations.css?v=3.3.0">
+  <link rel="stylesheet" href="css/variables.css?v=3.3.1">
+  <link rel="stylesheet" href="css/style.css?v=3.3.1">
+  <link rel="stylesheet" href="css/components.css?v=3.3.1">
+  <link rel="stylesheet" href="css/animations.css?v=3.3.1">
 </head>
 <body>
   <!-- Fullscreen CRT Scanlines Overlay -->
@@ -404,7 +404,14 @@
       </div>
 
       <div class="modal-actions">
-        <button class="modal-btn modal-btn-rematch" id="btn-modal-rematch" type="button">Сыграть снова</button>
+        <button class="modal-btn modal-btn-rematch" id="btn-modal-rematch" type="button">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          Сыграть снова
+        </button>
+        <button class="modal-btn modal-btn-menu" id="btn-modal-menu" type="button">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          В главное меню
+        </button>
         <button class="modal-btn modal-btn-stats" id="btn-modal-stats" type="button">🏆 Достижения и статистика</button>
         <button class="modal-btn modal-btn-close" id="btn-modal-close" type="button">Поле</button>
       </div>
@@ -562,6 +569,6 @@
   <script src="js/peerjs.min.js"></script>
 
   <!-- ES6 Module Entry Point -->
-  <script type="module" src="js/app.js?v=3.3.0"></script>
+  <script type="module" src="js/app.js?v=3.3.1"></script>
 </body>
 </html>

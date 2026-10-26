@@ -54,7 +54,7 @@ class CyberTicTacToe {
   registerServiceWorker() {
     if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=3.3.0')
+        navigator.serviceWorker.register('./sw.js?v=3.3.1')
           .then((registration) => {
             // Check for updates immediately
             if (registration) {
@@ -227,9 +227,7 @@ class CyberTicTacToe {
     // Back to Menu from HUD
     if (ui.btnBackMenu) {
       ui.btnBackMenu.addEventListener('click', () => {
-        sound.playClick();
-        this.stopBlitzTimer();
-        ui.showMenuScreen();
+        this.returnToMenu();
       });
     }
 
@@ -360,6 +358,12 @@ class CyberTicTacToe {
     if (ui.btnModalRematch) {
       ui.btnModalRematch.addEventListener('click', () => {
         this.handleRematchClick();
+      });
+    }
+
+    if (ui.btnModalMenu) {
+      ui.btnModalMenu.addEventListener('click', () => {
+        this.returnToMenu();
       });
     }
 
@@ -953,6 +957,16 @@ class CyberTicTacToe {
   /**
    * Handles rematch button click across PVP, PVE, and P2P modes
    */
+  returnToMenu() {
+    sound.playClick();
+    this.stopBlitzTimer();
+    this.localRematchRequested = false;
+    this.remoteRematchRequested = false;
+    ui.setRematchState('idle');
+    ui.showMenuScreen();
+    ui.updateRankUI(state);
+  }
+
   handleRematchClick() {
     sound.playClick();
 

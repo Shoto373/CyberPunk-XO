@@ -105,6 +105,7 @@ class UIEngine {
     this.modalSubtitle = document.getElementById('modal-subtitle');
     this.modalUnlockedAchievements = document.getElementById('modal-unlocked-achievements');
     this.btnModalRematch = document.getElementById('btn-modal-rematch');
+    this.btnModalMenu = document.getElementById('btn-modal-menu');
     this.btnModalStats = document.getElementById('btn-modal-stats');
     this.btnModalClose = document.getElementById('btn-modal-close');
 

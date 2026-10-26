@@ -774,9 +774,9 @@
 
 .modal-btn {
   width: 100%;
-  padding: 14px;
+  padding: 12px 14px;
   font-family: var(--font-display);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 2px;
   border-radius: var(--pill-radius);
@@ -795,6 +795,20 @@
 .modal-btn-rematch:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 35px var(--neon-x-glow);
+}
+
+.modal-btn-menu {
+  background: rgba(0, 240, 255, 0.08);
+  color: var(--neon-x);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+}
+
+.modal-btn-menu:hover {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: var(--neon-x);
+  color: #ffffff;
+  box-shadow: 0 0 18px var(--neon-x-soft);
+  transform: translateY(-1px);
 }
 
 .modal-btn-stats {
