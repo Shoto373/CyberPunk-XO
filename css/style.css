@@ -71,6 +71,23 @@ body {
   will-change: transform;
 }
 
+/* Screen Switching Architecture */
+.screen {
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  gap: 1.15rem;
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.screen.active {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 /* Responsive Scaling */
 @media (max-height: 800px) {
   .app-container {

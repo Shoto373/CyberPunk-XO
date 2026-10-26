@@ -1,15 +1,32 @@
 /**
- * UI.JS - DOM Rendering, 3D Board Tilt, SVG Mark Animations, Laser Strike & Modals
+ * UI.JS - DOM Rendering, 3D Board Tilt, SVG Mark Animations, Screen Navigation & HUD
  */
 
 class UIEngine {
   constructor() {
-    // DOM Elements
+    // App & Screens
     this.appContainer = document.getElementById('app-container');
+    this.screenMenu = document.getElementById('screen-menu');
+    this.screenGame = document.getElementById('screen-game');
+
+    // Menu Elements
+    this.modeCards = Array.from(document.querySelectorAll('.mode-card'));
+    this.btnStartGame = document.getElementById('btn-start-game');
+
+    // HUD Elements
+    this.btnBackMenu = document.getElementById('btn-back-menu');
+    this.hudModePill = document.getElementById('hud-mode-pill');
+    
+    // Blitz Timer Elements
+    this.blitzContainer = document.getElementById('blitz-timer-container');
+    this.blitzBarFill = document.getElementById('blitz-bar-fill');
+    this.blitzTimeText = document.getElementById('blitz-time-text');
+
+    // Board Elements
     this.boardPerspective = document.getElementById('board-perspective');
     this.boardContainer = document.getElementById('board-container');
     this.boardGrid = document.getElementById('board-grid');
-    this.cells = Array.from(document.querySelectorAll('.board-cell'));
+    this.cells = [];
     
     // Strike overlay
     this.strikeLine = document.getElementById('strike-line');
@@ -25,17 +42,17 @@ class UIEngine {
     this.labelO = document.getElementById('label-o');
     this.thinkingBadge = document.getElementById('thinking-badge');
 
-    // Controls
+    // Mode Toggle & Difficulty
     this.modeToggle = document.getElementById('mode-toggle');
     this.btnModePvp = document.getElementById('btn-mode-pvp');
     this.btnModePve = document.getElementById('btn-mode-pve');
     this.diffChipsContainer = document.getElementById('difficulty-chips');
     this.diffChips = Array.from(document.querySelectorAll('.chip-btn'));
 
-    // Buttons
-    this.btnAudio = document.getElementById('btn-audio');
-    this.iconSoundOn = document.getElementById('icon-sound-on');
-    this.iconSoundOff = document.getElementById('icon-sound-off');
+    // Audio Buttons (Menu and Header)
+    this.btnAudios = Array.from(document.querySelectorAll('.audio-btn'));
+
+    // Actions
     this.btnNewRound = document.getElementById('btn-new-round');
     this.btnResetScore = document.getElementById('btn-reset-score');
 
@@ -51,7 +68,24 @@ class UIEngine {
   }
 
   /**
-   * Initializes interactive 3D Tilt perspective on mouse/touch moves
+   * Switches to Main Menu screen
+   */
+  showMenuScreen() {
+    if (this.screenGame) this.screenGame.classList.remove('active');
+    if (this.screenMenu) this.screenMenu.classList.add('active');
+    this.hideModal();
+  }
+
+  /**
+   * Switches to Gameplay screen
+   */
+  showGameScreen() {
+    if (this.screenMenu) this.screenMenu.classList.remove('active');
+    if (this.screenGame) this.screenGame.classList.add('active');
+  }
+
+  /**
+   * Initializes 3D Tilt perspective on mouse & touch moves
    */
   initTilt() {
     if (!this.boardPerspective || !this.boardContainer) return;
@@ -64,7 +98,6 @@ class UIEngine {
       const percentX = (clientX - centerX) / (rect.width / 2);
       const percentY = (clientY - centerY) / (rect.height / 2);
 
-      // Max tilt angle in degrees
       const maxTilt = 12;
       const rotateX = -percentY * maxTilt;
       const rotateY = percentX * maxTilt;
@@ -80,7 +113,6 @@ class UIEngine {
       this.boardContainer.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     });
 
-    // Touch support for mobile devices
     this.boardPerspective.addEventListener('touchmove', (e) => {
       if (e.touches.length > 0) {
         handleMove(e.touches[0].clientX, e.touches[0].clientY);
@@ -93,8 +125,38 @@ class UIEngine {
   }
 
   /**
+   * Reconstructs board cells grid dynamically for 3x3 or 4x4
+   */
+  buildBoard(gridSize, onCellClick) {
+    if (!this.boardGrid) return;
+    this.boardGrid.innerHTML = '';
+    this.cells = [];
+
+    const totalCells = gridSize * gridSize;
+
+    if (gridSize === 4) {
+      this.boardContainer.classList.add('grid-4');
+    } else {
+      this.boardContainer.classList.remove('grid-4');
+    }
+
+    for (let i = 0; i < totalCells; i++) {
+      const cell = document.createElement('button');
+      cell.className = 'board-cell';
+      cell.setAttribute('data-index', i.toString());
+      cell.setAttribute('role', 'gridcell');
+      cell.setAttribute('aria-label', `Клетка ${i + 1}`);
+
+      cell.addEventListener('click', () => onCellClick(i));
+      this.boardGrid.appendChild(cell);
+      this.cells.push(cell);
+    }
+
+    this.hideStrikeLine();
+  }
+
+  /**
    * Renders laser X mark inside cell
-   * @param {HTMLElement} cell
    */
   renderMarkX(cell) {
     cell.classList.add('occupied');
@@ -109,7 +171,6 @@ class UIEngine {
 
   /**
    * Renders plasma ring O mark inside cell
-   * @param {HTMLElement} cell
    */
   renderMarkO(cell) {
     cell.classList.add('occupied');
@@ -120,9 +181,6 @@ class UIEngine {
     `;
   }
 
-  /**
-   * Renders mark according to player type
-   */
   renderCell(index, player) {
     const cell = this.cells[index];
     if (!cell) return;
@@ -134,6 +192,67 @@ class UIEngine {
   }
 
   /**
+   * Animates and removes a dissolved mark (Infinity XO)
+   */
+  dissolveCell(index) {
+    const cell = this.cells[index];
+    if (!cell) return;
+
+    cell.classList.add('dissolving');
+    setTimeout(() => {
+      cell.innerHTML = '';
+      cell.classList.remove('occupied', 'dissolving', 'ghost-warning');
+    }, 320);
+  }
+
+  /**
+   * Highlights the mark that will disappear next turn
+   */
+  setGhostWarning(expiringIndex) {
+    this.cells.forEach((cell, idx) => {
+      if (idx === expiringIndex) {
+        cell.classList.add('ghost-warning');
+      } else {
+        cell.classList.remove('ghost-warning');
+      }
+    });
+  }
+
+  clearGhostWarnings() {
+    this.cells.forEach(cell => cell.classList.remove('ghost-warning'));
+  }
+
+  /**
+   * Updates Blitz timer progress bar and numeric display
+   */
+  updateBlitzTimer(remaining, total, isUrgent) {
+    if (!this.blitzContainer) return;
+
+    const percent = Math.max(0, Math.min(100, (remaining / total) * 100));
+    if (this.blitzBarFill) {
+      this.blitzBarFill.style.width = `${percent}%`;
+    }
+    if (this.blitzTimeText) {
+      this.blitzTimeText.textContent = `${remaining.toFixed(1)}s`;
+    }
+
+    if (isUrgent) {
+      this.blitzContainer.classList.add('urgent');
+    } else {
+      this.blitzContainer.classList.remove('urgent');
+    }
+  }
+
+  setBlitzVisibility(isVisible) {
+    if (!this.blitzContainer) return;
+    if (isVisible) {
+      this.blitzContainer.classList.add('visible');
+    } else {
+      this.blitzContainer.classList.remove('visible');
+    }
+  }
+
+  /**
    * Updates scoreboard numbers and active turn indicators
    */
   updateScoreboard(state) {
@@ -141,7 +260,6 @@ class UIEngine {
     this.scoreTies.textContent = state.scores.ties;
     this.scoreO.textContent = state.scores.O;
 
-    // Update labels based on mode
     if (state.gameMode === 'pvp') {
       this.labelX.textContent = 'ИГРОК 1';
       this.labelO.textContent = 'ИГРОК 2';
@@ -150,7 +268,6 @@ class UIEngine {
       this.labelO.textContent = 'КИБЕР ИИ';
     }
 
-    // Turn indicator active classes
     if (!state.isGameOver) {
       if (state.currentPlayer === 'X') {
         this.cardX.classList.add('active');
@@ -170,9 +287,6 @@ class UIEngine {
     }
   }
 
-  /**
-   * Sets AI thinking indicator visibility
-   */
   setAiThinking(isThinking) {
     if (isThinking) {
       this.thinkingBadge.classList.add('visible');
@@ -183,29 +297,44 @@ class UIEngine {
   }
 
   /**
-   * Calculates and draws the glowing laser strike line across winning cells
-   * @param {Array<number>} line [a, b, c]
+   * Calculates and draws the glowing laser strike line
    */
-  drawStrikeLine(line) {
+  drawStrikeLine(line, gridSize = 3) {
     if (!line || !this.strikeLine) return;
 
-    // Map combo to SVG percentage coordinates (0..100)
-    const coordinates = {
-      // Rows
-      '0,1,2': { x1: 6, y1: 16.66, x2: 94, y2: 16.66 },
-      '3,4,5': { x1: 6, y1: 50, x2: 94, y2: 50 },
-      '6,7,8': { x1: 6, y1: 83.33, x2: 94, y2: 83.33 },
-      // Columns
-      '0,3,6': { x1: 16.66, y1: 6, x2: 16.66, y2: 94 },
-      '1,4,7': { x1: 50, y1: 6, x2: 50, y2: 94 },
-      '2,5,8': { x1: 83.33, y1: 6, x2: 83.33, y2: 94 },
-      // Diagonals
-      '0,4,8': { x1: 8, y1: 8, x2: 92, y2: 92 },
-      '2,4,6': { x1: 92, y1: 8, x2: 8, y2: 92 }
-    };
+    let coords;
 
-    const key = line.join(',');
-    const coords = coordinates[key] || { x1: 0, y1: 0, x2: 100, y2: 100 };
+    if (gridSize === 4) {
+      // 4x4 coordinate mappings
+      const coords4 = {
+        '0,1,2,3': { x1: 5, y1: 12.5, x2: 95, y2: 12.5 },
+        '4,5,6,7': { x1: 5, y1: 37.5, x2: 95, y2: 37.5 },
+        '8,9,10,11': { x1: 5, y1: 62.5, x2: 95, y2: 62.5 },
+        '12,13,14,15': { x1: 5, y1: 87.5, x2: 95, y2: 87.5 },
+        '0,4,8,12': { x1: 12.5, y1: 5, x2: 12.5, y2: 95 },
+        '1,5,9,13': { x1: 37.5, y1: 5, x2: 37.5, y2: 95 },
+        '2,6,10,14': { x1: 62.5, y1: 5, x2: 62.5, y2: 95 },
+        '3,7,11,15': { x1: 87.5, y1: 5, x2: 87.5, y2: 95 },
+        '0,5,10,15': { x1: 6, y1: 6, x2: 94, y2: 94 },
+        '3,6,9,12': { x1: 94, y1: 6, x2: 6, y2: 94 }
+      };
+      coords = coords4[line.join(',')];
+    } else {
+      // 3x3 coordinate mappings
+      const coords3 = {
+        '0,1,2': { x1: 6, y1: 16.66, x2: 94, y2: 16.66 },
+        '3,4,5': { x1: 6, y1: 50, x2: 94, y2: 50 },
+        '6,7,8': { x1: 6, y1: 83.33, x2: 94, y2: 83.33 },
+        '0,3,6': { x1: 16.66, y1: 6, x2: 16.66, y2: 94 },
+        '1,4,7': { x1: 50, y1: 6, x2: 50, y2: 94 },
+        '2,5,8': { x1: 83.33, y1: 6, x2: 83.33, y2: 94 },
+        '0,4,8': { x1: 8, y1: 8, x2: 92, y2: 92 },
+        '2,4,6': { x1: 92, y1: 8, x2: 8, y2: 92 }
+      };
+      coords = coords3[line.join(',')];
+    }
+
+    if (!coords) coords = { x1: 0, y1: 0, x2: 100, y2: 100 };
 
     this.strikeLine.setAttribute('x1', `${coords.x1}%`);
     this.strikeLine.setAttribute('y1', `${coords.y1}%`);
@@ -214,11 +343,9 @@ class UIEngine {
     this.strikeLine.style.display = 'block';
     this.strikeLine.classList.remove('animate-strike');
     
-    // Force reflow for animation restart
     void this.strikeLine.offsetWidth;
     this.strikeLine.classList.add('animate-strike');
 
-    // Highlight winning cells
     line.forEach(index => {
       if (this.cells[index]) {
         this.cells[index].classList.add('winning-cell');
@@ -234,21 +361,15 @@ class UIEngine {
     this.cells.forEach(cell => cell.classList.remove('winning-cell'));
   }
 
-  /**
-   * Triggers screen shake for cinematic triumph
-   */
   triggerScreenShake() {
     this.appContainer.classList.remove('screen-shake');
-    void this.appContainer.offsetWidth; // Reflow
+    void this.appContainer.offsetWidth;
     this.appContainer.classList.add('screen-shake');
     setTimeout(() => {
       this.appContainer.classList.remove('screen-shake');
     }, 500);
   }
 
-  /**
-   * Displays victory or draw modal
-   */
   showResultModal(result, gameMode) {
     if (result.status === 'win') {
       const isX = result.winner === 'X';
@@ -274,7 +395,6 @@ class UIEngine {
         this.modalSubtitle.textContent = isX ? 'Игрок 1 (X) забирает раунд!' : 'Игрок 2 (O) побеждает!';
       }
     } else {
-      // Tie / Draw
       this.modalSymbol.innerHTML = `
         <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-gold-glow))">
           <line x1="25" y1="40" x2="75" y2="40" stroke="var(--neon-gold)" stroke-width="12" stroke-linecap="round"/>
@@ -297,52 +417,46 @@ class UIEngine {
     this.modal.setAttribute('aria-hidden', 'true');
   }
 
-  /**
-   * Clears the board cells and hides overlays
-   */
   clearBoard() {
     this.cells.forEach(cell => {
       cell.innerHTML = '';
-      cell.classList.remove('occupied', 'winning-cell');
+      cell.classList.remove('occupied', 'winning-cell', 'ghost-warning', 'dissolving');
     });
     this.hideStrikeLine();
     this.hideModal();
   }
 
-  /**
-   * Updates audio button icon based on muted status
-   */
   updateAudioIcon(isMuted) {
-    if (isMuted) {
-      this.btnAudio.classList.add('muted');
-      this.iconSoundOn.style.display = 'none';
-      this.iconSoundOff.style.display = 'block';
-    } else {
-      this.btnAudio.classList.remove('muted');
-      this.iconSoundOn.style.display = 'block';
-      this.iconSoundOff.style.display = 'none';
-    }
+    this.btnAudios.forEach(btn => {
+      const onIcon = btn.querySelector('.icon-sound-on');
+      const offIcon = btn.querySelector('.icon-sound-off');
+      if (isMuted) {
+        btn.classList.add('muted');
+        if (onIcon) onIcon.style.display = 'none';
+        if (offIcon) offIcon.style.display = 'block';
+      } else {
+        btn.classList.remove('muted');
+        if (onIcon) onIcon.style.display = 'block';
+        if (offIcon) offIcon.style.display = 'none';
+      }
+    });
   }
 
-  /**
-   * Updates game mode segmented switch
-   */
   updateModeUI(mode) {
-    this.modeToggle.setAttribute('data-mode', mode);
+    if (this.modeToggle) {
+      this.modeToggle.setAttribute('data-mode', mode);
+    }
     if (mode === 'pvp') {
-      this.btnModePvp.classList.add('active');
-      this.btnModePve.classList.remove('active');
-      this.diffChipsContainer.classList.add('hidden');
+      if (this.btnModePvp) this.btnModePvp.classList.add('active');
+      if (this.btnModePve) this.btnModePve.classList.remove('active');
+      if (this.diffChipsContainer) this.diffChipsContainer.classList.add('hidden');
     } else {
-      this.btnModePve.classList.add('active');
-      this.btnModePvp.classList.remove('active');
-      this.diffChipsContainer.classList.remove('hidden');
+      if (this.btnModePve) this.btnModePve.classList.add('active');
+      if (this.btnModePvp) this.btnModePvp.classList.remove('active');
+      if (this.diffChipsContainer) this.diffChipsContainer.classList.remove('hidden');
     }
   }
 
-  /**
-   * Updates difficulty chips active state
-   */
   updateDifficultyUI(diff) {
     this.diffChips.forEach(chip => {
       if (chip.getAttribute('data-diff') === diff) {
@@ -351,6 +465,27 @@ class UIEngine {
         chip.classList.remove('active');
       }
     });
+  }
+
+  updateGameTypeCards(selectedType) {
+    this.modeCards.forEach(card => {
+      if (card.getAttribute('data-mode-type') === selectedType) {
+        card.classList.add('selected');
+      } else {
+        card.classList.remove('selected');
+      }
+    });
+
+    const labels = {
+      'classic': 'КЛАССИКА 3x3',
+      'infinity': 'БЕСКОНЕЧНЫЙ XO',
+      'blitz': 'КИБЕР-БЛИЦ 5С',
+      'grid4': 'СЕТКА 4x4'
+    };
+
+    if (this.hudModePill) {
+      this.hudModePill.textContent = labels[selectedType] || 'КЛАССИКА';
+    }
   }
 }
 

@@ -51,6 +51,11 @@
   --glow-gold-box: 0 0 30px var(--neon-gold-glow), 0 0 60px rgba(255, 215, 0, 0.35);
   --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15);
 
+  --neon-danger: #ef4444;            /* Warning & Timeout Red */
+  --neon-danger-glow: rgba(239, 68, 68, 0.85);
+  --neon-warning: #f59e0b;           /* Fading Ghost Warning */
+  --neon-warning-glow: rgba(245, 158, 11, 0.8);
+
   /* --- Transitions --- */
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);

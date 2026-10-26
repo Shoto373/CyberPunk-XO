@@ -11,47 +11,86 @@ import { ui } from './ui.js';
 
 class CyberTicTacToe {
   constructor() {
+    this.blitzInterval = null;
     this.init();
   }
 
   init() {
-    // Restore UI from state
+    // Synchronize UI from initial state
     ui.updateScoreboard(state);
     ui.updateModeUI(state.gameMode);
     ui.updateDifficultyUI(state.aiDifficulty);
+    ui.updateGameTypeCards(state.gameType);
     ui.updateAudioIcon(sound.getMuted());
+
+    // Build initial board
+    this.rebuildGameBoard();
+
+    // Default to main menu
+    ui.showMenuScreen();
 
     // Bind DOM events
     this.bindEvents();
   }
 
+  rebuildGameBoard() {
+    ui.buildBoard(state.gridSize, (index) => {
+      this.handleCellClick(index);
+    });
+  }
+
   bindEvents() {
-    // Cell clicks
-    ui.cells.forEach(cell => {
-      cell.addEventListener('click', (e) => {
-        const index = parseInt(cell.getAttribute('data-index'), 10);
-        this.handleCellClick(index);
+    // Mode Cards in Main Menu
+    ui.modeCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const selectedType = card.getAttribute('data-mode-type');
+        sound.playClick();
+        state.setGameType(selectedType);
+        ui.updateGameTypeCards(selectedType);
+        this.rebuildGameBoard();
       });
     });
 
-    // Game Mode Switcher (PVP / PVE)
-    ui.btnModePvp.addEventListener('click', () => {
-      if (state.gameMode !== 'pvp') {
+    // Start Game from Menu
+    if (ui.btnStartGame) {
+      ui.btnStartGame.addEventListener('click', () => {
         sound.playClick();
-        state.setGameMode('pvp');
-        ui.updateModeUI('pvp');
         this.startNewRound();
-      }
-    });
+        ui.showGameScreen();
+      });
+    }
 
-    ui.btnModePve.addEventListener('click', () => {
-      if (state.gameMode !== 'pve') {
+    // Back to Menu from HUD
+    if (ui.btnBackMenu) {
+      ui.btnBackMenu.addEventListener('click', () => {
         sound.playClick();
-        state.setGameMode('pve');
-        ui.updateModeUI('pve');
-        this.startNewRound();
-      }
-    });
+        this.stopBlitzTimer();
+        ui.showMenuScreen();
+      });
+    }
+
+    // Opponent Switcher (PVP / PVE)
+    if (ui.btnModePvp) {
+      ui.btnModePvp.addEventListener('click', () => {
+        if (state.gameMode !== 'pvp') {
+          sound.playClick();
+          state.setGameMode('pvp');
+          ui.updateModeUI('pvp');
+          this.startNewRound();
+        }
+      });
+    }
+
+    if (ui.btnModePve) {
+      ui.btnModePve.addEventListener('click', () => {
+        if (state.gameMode !== 'pve') {
+          sound.playClick();
+          state.setGameMode('pve');
+          ui.updateModeUI('pve');
+          this.startNewRound();
+        }
+      });
+    }
 
     // Difficulty Chips
     ui.diffChips.forEach(chip => {
@@ -66,36 +105,46 @@ class CyberTicTacToe {
     });
 
     // Audio Mute Toggle
-    ui.btnAudio.addEventListener('click', () => {
-      sound.initContext();
-      const isMuted = sound.toggleMute();
-      ui.updateAudioIcon(isMuted);
-      if (!isMuted) sound.playClick();
+    ui.btnAudios.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sound.initContext();
+        const isMuted = sound.toggleMute();
+        ui.updateAudioIcon(isMuted);
+        if (!isMuted) sound.playClick();
+      });
     });
 
     // New Round Button
-    ui.btnNewRound.addEventListener('click', () => {
-      sound.playClick();
-      this.startNewRound();
-    });
+    if (ui.btnNewRound) {
+      ui.btnNewRound.addEventListener('click', () => {
+        sound.playClick();
+        this.startNewRound();
+      });
+    }
 
     // Reset Score Button
-    ui.btnResetScore.addEventListener('click', () => {
-      sound.playClick();
-      state.resetScores();
-      ui.updateScoreboard(state);
-    });
+    if (ui.btnResetScore) {
+      ui.btnResetScore.addEventListener('click', () => {
+        sound.playClick();
+        state.resetScores();
+        ui.updateScoreboard(state);
+      });
+    }
 
     // Modal Actions
-    ui.btnModalRematch.addEventListener('click', () => {
-      sound.playClick();
-      this.startNewRound();
-    });
+    if (ui.btnModalRematch) {
+      ui.btnModalRematch.addEventListener('click', () => {
+        sound.playClick();
+        this.startNewRound();
+      });
+    }
 
-    ui.btnModalClose.addEventListener('click', () => {
-      sound.playClick();
-      ui.hideModal();
-    });
+    if (ui.btnModalClose) {
+      ui.btnModalClose.addEventListener('click', () => {
+        sound.playClick();
+        ui.hideModal();
+      });
+    }
 
     // Initialize Web Audio on first user interaction anywhere
     const unlockAudio = () => {
@@ -116,7 +165,7 @@ class CyberTicTacToe {
 
     this.executeMove(index, state.currentPlayer);
 
-    // If PVE mode and game still in progress, queue AI turn
+    // If PVE mode and game still active, queue AI turn
     if (state.gameMode === 'pve' && !state.isGameOver && state.currentPlayer === 'O') {
       this.triggerAiTurn();
     }
@@ -126,27 +175,49 @@ class CyberTicTacToe {
    * Executes a move on the board for the specified player
    */
   executeMove(index, player) {
-    const success = state.makeMove(index, player);
+    const { success, dissolved } = state.makeMove(index, player);
     if (!success) return;
+
+    // Handle dissolved ghost mark in Infinity XO mode
+    if (dissolved !== null) {
+      sound.playDissolve();
+      ui.dissolveCell(dissolved);
+    }
 
     // Render mark SVG with laser/plasma animation
     ui.renderCell(index, player);
 
-    // Play procedural sound
+    // Play procedural move sound
     if (player === 'X') {
       sound.playMoveX();
     } else {
       sound.playMoveO();
     }
 
-    // Check game condition
+    // Check game outcome
     const result = state.checkGameEnd();
 
     if (result) {
+      this.stopBlitzTimer();
       this.handleGameEnd(result);
     } else {
       state.switchTurn();
       ui.updateScoreboard(state);
+
+      // Update Ghost mark warning beacon for the new player
+      if (state.gameType === 'infinity') {
+        const nextExpiring = state.getExpiringGhostCell(state.currentPlayer);
+        if (nextExpiring !== null) {
+          ui.setGhostWarning(nextExpiring);
+        } else {
+          ui.clearGhostWarnings();
+        }
+      }
+
+      // Reset Blitz timer for next turn
+      if (state.gameType === 'blitz') {
+        this.startBlitzTimer();
+      }
     }
   }
 
@@ -157,8 +228,7 @@ class CyberTicTacToe {
     state.isAiThinking = true;
     ui.setAiThinking(true);
 
-    // Natural cyber-thought delay (380-480ms)
-    const delay = Math.floor(Math.random() * 100) + 380;
+    const delay = Math.floor(Math.random() * 90) + 360;
 
     setTimeout(() => {
       if (state.isGameOver) {
@@ -167,7 +237,14 @@ class CyberTicTacToe {
         return;
       }
 
-      const bestMove = getAiMove(state.board, state.aiDifficulty, 'O', 'X');
+      const bestMove = getAiMove(
+        state.board,
+        state.aiDifficulty,
+        'O',
+        'X',
+        state.gameType,
+        state.ghostMoves
+      );
 
       state.isAiThinking = false;
       ui.setAiThinking(false);
@@ -182,32 +259,22 @@ class CyberTicTacToe {
    * Handles triumph / tie results
    */
   handleGameEnd(result) {
+    ui.clearGhostWarnings();
     ui.updateScoreboard(state);
 
     if (result.status === 'win') {
-      // 1. Draw glowing laser strike line
-      ui.drawStrikeLine(result.line);
-
-      // 2. Screen shake
+      ui.drawStrikeLine(result.line, state.gridSize);
       ui.triggerScreenShake();
-
-      // 3. Victory audio fanfare
       sound.playWin();
 
-      // 4. Neon fireworks / Confetti
       const boardRect = ui.boardContainer.getBoundingClientRect();
       const originX = boardRect.left + boardRect.width / 2;
       const originY = boardRect.top + boardRect.height / 2;
 
       particles.fireVictory(originX, originY);
-      setTimeout(() => {
-        particles.fireVictory(originX - 100, originY - 50);
-      }, 180);
-      setTimeout(() => {
-        particles.fireVictory(originX + 100, originY - 50);
-      }, 360);
+      setTimeout(() => particles.fireVictory(originX - 100, originY - 50), 180);
+      setTimeout(() => particles.fireVictory(originX + 100, originY - 50), 360);
 
-      // 5. Victory Modal
       ui.showResultModal(result, state.gameMode);
     } else if (result.status === 'tie') {
       ui.triggerScreenShake();
@@ -217,12 +284,84 @@ class CyberTicTacToe {
   }
 
   /**
-   * Soft-resets the board for a new round
+   * Blitz Timer Management
+   */
+  startBlitzTimer() {
+    this.stopBlitzTimer();
+    ui.setBlitzVisibility(true);
+    state.blitzTimeRemaining = state.blitzDuration;
+    ui.updateBlitzTimer(state.blitzTimeRemaining, state.blitzDuration, false);
+
+    let lastTickSecond = Math.ceil(state.blitzTimeRemaining);
+
+    this.blitzInterval = setInterval(() => {
+      if (state.isGameOver || state.isAiThinking) return;
+
+      state.blitzTimeRemaining -= 0.1;
+      const isUrgent = state.blitzTimeRemaining <= 2.0;
+
+      // Play sound tick on second boundaries
+      const currentSecond = Math.ceil(state.blitzTimeRemaining);
+      if (currentSecond !== lastTickSecond && currentSecond <= 3 && currentSecond > 0) {
+        sound.playTimerTick(isUrgent);
+        lastTickSecond = currentSecond;
+      }
+
+      if (state.blitzTimeRemaining <= 0) {
+        this.stopBlitzTimer();
+        ui.updateBlitzTimer(0, state.blitzDuration, true);
+        sound.playTimerAlarm();
+        this.handleBlitzTimeout();
+      } else {
+        ui.updateBlitzTimer(state.blitzTimeRemaining, state.blitzDuration, isUrgent);
+      }
+    }, 100);
+  }
+
+  stopBlitzTimer() {
+    if (this.blitzInterval) {
+      clearInterval(this.blitzInterval);
+      this.blitzInterval = null;
+    }
+  }
+
+  handleBlitzTimeout() {
+    if (state.isGameOver) return;
+
+    ui.triggerScreenShake();
+
+    // Turn timeout: player loses turn or makes a forced random move
+    const available = [];
+    for (let i = 0; i < state.board.length; i++) {
+      if (state.board[i] === null) available.push(i);
+    }
+
+    if (available.length > 0) {
+      const forcedMove = available[Math.floor(Math.random() * available.length)];
+      this.executeMove(forcedMove, state.currentPlayer);
+
+      if (state.gameMode === 'pve' && !state.isGameOver && state.currentPlayer === 'O') {
+        this.triggerAiTurn();
+      }
+    }
+  }
+
+  /**
+   * Starts a new round
    */
   startNewRound() {
+    this.stopBlitzTimer();
     state.resetRound();
+    this.rebuildGameBoard();
     ui.clearBoard();
     ui.updateScoreboard(state);
+    ui.updateGameTypeCards(state.gameType);
+
+    if (state.gameType === 'blitz') {
+      this.startBlitzTimer();
+    } else {
+      ui.setBlitzVisibility(false);
+    }
   }
 }
 

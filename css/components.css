@@ -613,3 +613,350 @@
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.05);
 }
+
+/* --------------------------------------------------------------------------
+   7. Main Menu Screen Components
+   -------------------------------------------------------------------------- */
+.menu-screen {
+  gap: 1.4rem;
+}
+
+.menu-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.menu-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(0, 243, 255, 0.1);
+  border: 1px solid var(--neon-x-soft);
+  color: var(--neon-x);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 4px 12px;
+  border-radius: var(--pill-radius);
+  text-transform: uppercase;
+  box-shadow: 0 0 12px rgba(0, 243, 255, 0.2);
+}
+
+.menu-title-glitch {
+  font-family: var(--font-display);
+  font-size: 2.3rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #ffffff 10%, var(--neon-x) 50%, var(--neon-o) 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.1;
+}
+
+.menu-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+.section-label {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--surface-glass-border), transparent);
+}
+
+/* Mode Cards 2x2 Grid */
+.mode-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.mode-card {
+  position: relative;
+  background: var(--surface-glass-card);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--card-radius);
+  padding: 1rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-align: left;
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+
+.mode-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(22, 32, 68, 0.7);
+}
+
+.mode-card.selected {
+  background: rgba(0, 243, 255, 0.08);
+  border-color: var(--neon-x);
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.25), inset 0 0 15px rgba(0, 243, 255, 0.08);
+}
+
+.mode-card[data-mode-type="infinity"].selected {
+  background: rgba(255, 0, 127, 0.08);
+  border-color: var(--neon-o);
+  box-shadow: 0 0 20px rgba(255, 0, 127, 0.25), inset 0 0 15px rgba(255, 0, 127, 0.08);
+}
+
+.mode-card[data-mode-type="blitz"].selected {
+  background: rgba(255, 215, 0, 0.08);
+  border-color: var(--neon-gold);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.25), inset 0 0 15px rgba(255, 215, 0, 0.08);
+}
+
+.mode-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mode-card-icon {
+  font-size: 1.4rem;
+}
+
+.mode-card-tag {
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 2px 7px;
+  border-radius: var(--pill-radius);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+.mode-card.selected .mode-card-tag {
+  background: var(--neon-x);
+  color: #060814;
+}
+
+.mode-card[data-mode-type="infinity"].selected .mode-card-tag {
+  background: var(--neon-o);
+  color: #ffffff;
+}
+
+.mode-card[data-mode-type="blitz"].selected .mode-card-tag {
+  background: var(--neon-gold);
+  color: #060814;
+}
+
+.mode-card-title {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.mode-card-desc {
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+/* Big Start Button */
+.btn-launch-game {
+  width: 100%;
+  padding: 16px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #060814;
+  background: linear-gradient(135deg, var(--neon-x) 0%, #38bdf8 50%, var(--neon-purple) 100%);
+  border: none;
+  border-radius: var(--pill-radius);
+  cursor: pointer;
+  box-shadow: 0 0 30px var(--neon-x-soft), 0 8px 25px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all var(--transition-normal);
+}
+
+.btn-launch-game:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 0 45px var(--neon-x-glow), 0 12px 35px rgba(0, 0, 0, 0.6);
+}
+
+.btn-launch-game:active {
+  transform: translateY(0) scale(1);
+}
+
+.btn-launch-game svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   8. In-Game HUD & Blitz Timer
+   -------------------------------------------------------------------------- */
+.hud-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.btn-hud-back {
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-glass-border);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 8px 14px;
+  border-radius: var(--pill-radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-transform: uppercase;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(12px);
+}
+
+.btn-hud-back:hover {
+  color: var(--neon-x);
+  border-color: var(--neon-x);
+  box-shadow: 0 0 15px var(--neon-x-soft);
+}
+
+.hud-mode-pill {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: var(--pill-radius);
+  background: rgba(14, 21, 46, 0.8);
+  border: 1px solid var(--surface-glass-border);
+  color: var(--neon-x);
+}
+
+/* Blitz Timer Bar */
+.blitz-timer-container {
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.blitz-timer-container.visible {
+  display: flex;
+}
+
+.blitz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+}
+
+.blitz-label {
+  color: var(--text-secondary);
+}
+
+.blitz-time-text {
+  font-weight: 800;
+  color: var(--neon-gold);
+}
+
+.blitz-bar-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--pill-radius);
+  overflow: hidden;
+  position: relative;
+}
+
+.blitz-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--neon-x), var(--neon-gold));
+  border-radius: inherit;
+  box-shadow: 0 0 10px var(--neon-gold-glow);
+  transition: width 0.1s linear, background-color 0.2s ease;
+}
+
+.blitz-timer-container.urgent .blitz-bar-fill {
+  background: var(--neon-danger);
+  box-shadow: 0 0 15px var(--neon-danger-glow);
+}
+
+.blitz-timer-container.urgent .blitz-time-text {
+  color: var(--neon-danger);
+  animation: timer-pulse 0.4s infinite alternate;
+}
+
+/* --------------------------------------------------------------------------
+   9. Ghost Mark Warning (Infinity XO) & Dissolving Cell
+   -------------------------------------------------------------------------- */
+.board-cell.ghost-warning {
+  border-color: var(--neon-warning) !important;
+  box-shadow: 0 0 20px var(--neon-warning-glow), inset 0 0 12px rgba(245, 158, 11, 0.4) !important;
+  animation: ghost-warning-beacon 0.9s infinite ease-in-out;
+}
+
+.board-cell.ghost-warning .mark-svg {
+  animation: ghost-svg-pulse 0.9s infinite ease-in-out;
+}
+
+.board-cell.dissolving {
+  animation: mark-dissolve-fade 0.35s ease-out forwards;
+}
+
+/* --------------------------------------------------------------------------
+   10. 4x4 Grid Support
+   -------------------------------------------------------------------------- */
+.board-container.grid-4 .board-grid {
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.board-container.grid-4 .board-cell {
+  border-radius: 12px;
+}
+
+.board-container.grid-4 .mark-svg {
+  width: 62%;
+  height: 62%;
+}
+

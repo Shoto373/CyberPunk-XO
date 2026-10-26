@@ -187,3 +187,58 @@
     box-shadow: 0 0 30px rgba(255, 0, 127, 0.9);
   }
 }
+
+/* --------------------------------------------------------------------------
+   8. Ghost Fading, Dissolve & Blitz Animations
+   -------------------------------------------------------------------------- */
+@keyframes ghost-warning-beacon {
+  0%, 100% {
+    box-shadow: 0 0 14px var(--neon-warning-glow), inset 0 0 8px rgba(245, 158, 11, 0.3);
+    border-color: var(--neon-warning);
+  }
+  50% {
+    box-shadow: 0 0 28px var(--neon-warning-glow), inset 0 0 18px rgba(245, 158, 11, 0.65);
+    border-color: #ffffff;
+  }
+}
+
+@keyframes ghost-svg-pulse {
+  0%, 100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.92);
+  }
+}
+
+@keyframes mark-dissolve-fade {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(2);
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.6;
+    filter: brightness(3) blur(2px);
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+
+@keyframes timer-pulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 4px var(--neon-danger-glow));
+  }
+  100% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 12px var(--neon-danger-glow));
+  }
+}
+

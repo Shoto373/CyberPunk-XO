@@ -1,31 +1,57 @@
 /**
- * STATE.JS - Centralized State Management & LocalStorage Persistence
+ * STATE.JS - Centralized State Management, Game Modes & LocalStorage Persistence
  */
 
-export const WINNING_COMBOS = [
+export const WINNING_COMBOS_3X3 = [
   [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
   [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
   [0, 4, 8], [2, 4, 6]             // Diagonals
 ];
 
+export const WINNING_COMBOS_4X4 = [
+  // Rows
+  [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15],
+  // Columns
+  [0, 4, 8, 12], [1, 5, 9, 13], [2, 6, 10, 14], [3, 7, 11, 15],
+  // Diagonals
+  [0, 5, 10, 15], [3, 6, 9, 12]
+];
+
 const STORAGE_KEYS = {
   SCORES: 'cyber_xo_scores',
   MODE: 'cyber_xo_mode',
+  TYPE: 'cyber_xo_game_type',
   DIFF: 'cyber_xo_diff'
 };
 
 class GameState {
   constructor() {
-    this.board = Array(9).fill(null);
-    this.currentPlayer = 'X'; // X starts first
-    this.gameMode = localStorage.getItem(STORAGE_KEYS.MODE) || 'pve'; // 'pvp' | 'pve'
+    this.gameType = localStorage.getItem(STORAGE_KEYS.TYPE) || 'classic'; // 'classic' | 'infinity' | 'blitz' | 'grid4'
+    this.gameMode = localStorage.getItem(STORAGE_KEYS.MODE) || 'pve';     // 'pvp' | 'pve'
     this.aiDifficulty = localStorage.getItem(STORAGE_KEYS.DIFF) || 'unbeatable'; // 'easy' | 'medium' | 'unbeatable'
+    
+    this.gridSize = this.gameType === 'grid4' ? 4 : 3;
+    const totalCells = this.gridSize * this.gridSize;
+    this.board = Array(totalCells).fill(null);
+    
+    this.currentPlayer = 'X';
     this.scores = this.loadScores();
     this.isGameOver = false;
-    this.winner = null; // 'X' | 'O' | 'tie' | null
-    this.winningLine = null; // [a, b, c] | null
+    this.winner = null;
+    this.winningLine = null;
     this.isAiThinking = false;
     this.moveHistory = [];
+    
+    // Ghost marks tracking for Infinity XO
+    this.ghostMoves = { X: [], O: [] };
+
+    // Blitz timer parameters
+    this.blitzDuration = 5; // 5 seconds per turn
+    this.blitzTimeRemaining = 5;
+  }
+
+  getWinningCombos() {
+    return this.gridSize === 4 ? WINNING_COMBOS_4X4 : WINNING_COMBOS_3X3;
   }
 
   loadScores() {
@@ -53,6 +79,15 @@ class GameState {
     }
   }
 
+  setGameType(type) {
+    if (['classic', 'infinity', 'blitz', 'grid4'].includes(type)) {
+      this.gameType = type;
+      localStorage.setItem(STORAGE_KEYS.TYPE, type);
+      this.gridSize = type === 'grid4' ? 4 : 3;
+      this.resetRound();
+    }
+  }
+
   setGameMode(mode) {
     if (mode === 'pvp' || mode === 'pve') {
       this.gameMode = mode;
@@ -67,27 +102,52 @@ class GameState {
     }
   }
 
+  /**
+   * Returns the cell index that is next in line to dissolve for player (if any)
+   */
+  getExpiringGhostCell(player = this.currentPlayer) {
+    if (this.gameType === 'infinity' && this.ghostMoves[player].length === 3) {
+      return this.ghostMoves[player][0];
+    }
+    return null;
+  }
+
   makeMove(index, player) {
     if (this.board[index] !== null || this.isGameOver) {
-      return false;
+      return { success: false, dissolved: null };
     }
+
+    let dissolvedCell = null;
+
+    // Infinity XO rule: max 3 marks per player
+    if (this.gameType === 'infinity') {
+      if (this.ghostMoves[player].length >= 3) {
+        dissolvedCell = this.ghostMoves[player].shift();
+        this.board[dissolvedCell] = null;
+      }
+      this.ghostMoves[player].push(index);
+    }
+
     this.board[index] = player;
-    this.moveHistory.push({ index, player });
-    return true;
+    this.moveHistory.push({ index, player, dissolved: dissolvedCell });
+    return { success: true, dissolved: dissolvedCell };
   }
 
   switchTurn() {
     this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+    this.blitzTimeRemaining = this.blitzDuration;
     return this.currentPlayer;
   }
 
   checkGameEnd() {
-    // Check win
-    for (const line of WINNING_COMBOS) {
-      const [a, b, c] = line;
-      if (this.board[a] && this.board[a] === this.board[b] && this.board[a] === this.board[c]) {
+    const combos = this.getWinningCombos();
+
+    // Check win condition
+    for (const line of combos) {
+      const first = this.board[line[0]];
+      if (first && line.every(idx => this.board[idx] === first)) {
         this.isGameOver = true;
-        this.winner = this.board[a];
+        this.winner = first;
         this.winningLine = line;
         this.scores[this.winner]++;
         this.saveScores();
@@ -95,7 +155,7 @@ class GameState {
       }
     }
 
-    // Check tie
+    // Check tie condition (in Infinity XO, ties are virtually eliminated)
     if (this.board.every(cell => cell !== null)) {
       this.isGameOver = true;
       this.winner = 'tie';
@@ -109,13 +169,16 @@ class GameState {
   }
 
   resetRound() {
-    this.board = Array(9).fill(null);
+    const totalCells = this.gridSize * this.gridSize;
+    this.board = Array(totalCells).fill(null);
     this.currentPlayer = 'X';
     this.isGameOver = false;
     this.winner = null;
     this.winningLine = null;
     this.isAiThinking = false;
     this.moveHistory = [];
+    this.ghostMoves = { X: [], O: [] };
+    this.blitzTimeRemaining = this.blitzDuration;
   }
 
   resetScores() {
