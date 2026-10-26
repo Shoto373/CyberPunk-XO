@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Киберпанк Крестики-Нолики с процедурным звуком, 3D-наклоном, частицами и непобедимым ИИ.">
+  <meta name="theme-color" content="#060814">
+  <title>CYBER XO // Крестики-Нолики 3.0</title>
+
+  <!-- Google Fonts: Orbitron & Rajdhani -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Modular CSS Hierarchy -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+  <!-- Fullscreen Background & FX Canvases -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <canvas id="fx-canvas" aria-hidden="true"></canvas>
+
+  <!-- Main Game Container with Screen-Shake support -->
+  <main class="app-container shake-target" id="app-container">
+    
+    <!-- Top Bar: Logo & Audio Switcher -->
+    <header class="app-header">
+      <div class="logo-group">
+        <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="14" stroke="url(#logo-grad)" stroke-width="2.5" stroke-dasharray="6 3"/>
+          <path d="M11 11L21 21M21 11L11 21" stroke="#00f3ff" stroke-width="2.5" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00f3ff"/>
+              <stop offset="1" stop-color="#ff007f"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <h1 class="logo-title">CYBER XO</h1>
+      </div>
+
+      <button id="btn-audio" class="audio-btn" aria-label="Переключить звук" title="Вкл/Выкл звук">
+        <svg id="icon-sound-on" viewBox="0 0 24 24">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </svg>
+        <svg id="icon-sound-off" viewBox="0 0 24 24" style="display: none;">
+          <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27l4.73 4.73H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Scoreboard & Active Turn Indicators -->
+    <section class="scoreboard" aria-label="Табло счёта">
+      <div class="score-card player-x active" id="card-x">
+        <div class="card-header">
+          <span class="card-avatar">✕</span>
+          <span class="card-label" id="label-x">ИГРОК 1</span>
+        </div>
+        <span class="card-score" id="score-x">0</span>
+      </div>
+
+      <div class="score-card ties" id="card-ties">
+        <div class="card-header">
+          <span class="card-avatar" style="color: var(--neon-gold)">=</span>
+          <span class="card-label">НИЧЬИ</span>
+        </div>
+        <span class="card-score" id="score-ties">0</span>
+      </div>
+
+      <div class="score-card player-o" id="card-o">
+        <div class="card-header">
+          <span class="card-avatar">◯</span>
+          <span class="card-label" id="label-o">КИБЕР ИИ</span>
+        </div>
+        <span class="card-score" id="score-o">0</span>
+        <span class="thinking-badge" id="thinking-badge">АНАЛИЗ...</span>
+      </div>
+    </section>
+
+    <!-- Controls: Mode Selector & Difficulty Chips -->
+    <section class="controls-bar" aria-label="Настройки игры">
+      <div class="mode-toggle" id="mode-toggle" data-mode="pve">
+        <div class="mode-slider" aria-hidden="true"></div>
+        <button class="mode-btn" id="btn-mode-pvp" type="button">1 VS 1 (PVP)</button>
+        <button class="mode-btn active" id="btn-mode-pve" type="button">VS AI (PVE)</button>
+      </div>
+
+      <div class="difficulty-chips" id="difficulty-chips">
+        <button class="chip-btn" id="chip-easy" data-diff="easy" type="button">Новичок</button>
+        <button class="chip-btn" id="chip-medium" data-diff="medium" type="button">Тактик</button>
+        <button class="chip-btn active" id="chip-unbeatable" data-diff="unbeatable" type="button">Мастер</button>
+      </div>
+    </section>
+
+    <!-- 3D Perspective Board Container -->
+    <div class="board-perspective" id="board-perspective">
+      <div class="board-container turn-x" id="board-container">
+        
+        <!-- Laser Victory Line SVG Layer -->
+        <svg class="strike-overlay" id="strike-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <line id="strike-line" class="strike-laser-line" x1="0" y1="0" x2="0" y2="0" style="display: none;"/>
+        </svg>
+
+        <!-- 3x3 Cells Grid -->
+        <div class="board-grid" id="board-grid" role="grid" aria-label="Игровое поле 3 на 3">
+          <button class="board-cell" data-index="0" role="gridcell" aria-label="Клетка 1"></button>
+          <button class="board-cell" data-index="1" role="gridcell" aria-label="Клетка 2"></button>
+          <button class="board-cell" data-index="2" role="gridcell" aria-label="Клетка 3"></button>
+          <button class="board-cell" data-index="3" role="gridcell" aria-label="Клетка 4"></button>
+          <button class="board-cell" data-index="4" role="gridcell" aria-label="Клетка 5"></button>
+          <button class="board-cell" data-index="5" role="gridcell" aria-label="Клетка 6"></button>
+          <button class="board-cell" data-index="6" role="gridcell" aria-label="Клетка 7"></button>
+          <button class="board-cell" data-index="7" role="gridcell" aria-label="Клетка 8"></button>
+          <button class="board-cell" data-index="8" role="gridcell" aria-label="Клетка 9"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <footer class="actions-bar">
+      <button class="action-btn btn-primary" id="btn-new-round" type="button">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        Новый раунд
+      </button>
+      <button class="action-btn" id="btn-reset-score" type="button">
+        <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.95 20 14.54 20 13c0-4.42-3.58-8-8-8zm-6.2 1.2L4.34 7.66 6.13 9.45C5.42 10.48 5 11.69 5 13c0 4.42 3.58 8 8 8v-4l5 5-5 5v-4c-5.52 0-10-4.48-10-10 0-1.88.52-3.64 1.43-5.16L5.8 6.2z"/></svg>
+        Сброс счёта
+      </button>
+    </footer>
+
+  </main>
+
+  <!-- Final Victory / Draw Modal Overlay -->
+  <aside class="modal-overlay" id="result-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-symbol" id="modal-symbol"></div>
+      <h2 class="modal-title" id="modal-title">ПОБЕДА!</h2>
+      <p class="modal-subtitle" id="modal-subtitle">Игрок X сокрушил соперника</p>
+      
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-rematch" id="btn-modal-rematch" type="button">Реванш</button>
+        <button class="modal-btn modal-btn-close" id="btn-modal-close" type="button">Посмотреть поле</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ES6 Module Entry Point -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

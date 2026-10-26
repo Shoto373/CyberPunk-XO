@@ -1,0 +1,615 @@
+/* ==========================================================================
+   COMPONENTS.CSS - Glassmorphism Board, Cells, Scoreboard, Controls & Modals
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Header Section
+   -------------------------------------------------------------------------- */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 0 8px var(--neon-x-glow));
+}
+
+.logo-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #ffffff 20%, var(--neon-x) 60%, var(--neon-o) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.audio-btn {
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-glass-border);
+  color: var(--text-secondary);
+  border-radius: var(--pill-radius);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(12px);
+}
+
+.audio-btn:hover {
+  color: var(--neon-x);
+  border-color: var(--neon-x);
+  box-shadow: 0 0 15px var(--neon-x-soft);
+  transform: translateY(-1px);
+}
+
+.audio-btn.muted {
+  color: var(--text-muted);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.audio-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   2. Scoreboard & Player Cards
+   -------------------------------------------------------------------------- */
+.scoreboard {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr 1fr;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.score-card {
+  position: relative;
+  background: var(--surface-glass-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--card-radius);
+  padding: 0.8rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-normal);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.score-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: transparent;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: background var(--transition-normal);
+}
+
+/* Active Turn Highlights */
+.score-card.player-x.active {
+  background: rgba(0, 243, 255, 0.08);
+  border-color: var(--neon-x);
+  box-shadow: var(--glow-x-box);
+  transform: translateY(-2px);
+}
+
+.score-card.player-x.active .card-avatar {
+  filter: drop-shadow(0 0 10px var(--neon-x-glow));
+}
+
+.score-card.player-o.active {
+  background: rgba(255, 0, 127, 0.08);
+  border-color: var(--neon-o);
+  box-shadow: var(--glow-o-box);
+  transform: translateY(-2px);
+}
+
+.score-card.player-o.active .card-avatar {
+  filter: drop-shadow(0 0 10px var(--neon-o-glow));
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+}
+
+.card-avatar {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.player-x .card-avatar {
+  color: var(--neon-x);
+}
+
+.player-o .card-avatar {
+  color: var(--neon-o);
+}
+
+.card-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.card-score {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+/* Thinking Indicator badge for AI */
+.thinking-badge {
+  position: absolute;
+  bottom: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--neon-o);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all var(--transition-fast);
+  text-transform: uppercase;
+}
+
+.thinking-badge.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   3. Game Controls (Mode & Difficulty Switchers)
+   -------------------------------------------------------------------------- */
+.controls-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+  background: rgba(10, 15, 36, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--pill-radius);
+  padding: 4px;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px 12px;
+  border-radius: var(--pill-radius);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  z-index: 2;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.mode-btn:hover {
+  color: var(--text-primary);
+}
+
+.mode-btn.active {
+  color: #060814;
+  font-weight: 900;
+}
+
+.mode-slider {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: linear-gradient(135deg, var(--neon-x), #38bdf8);
+  border-radius: var(--pill-radius);
+  box-shadow: 0 0 15px var(--neon-x-glow);
+  transition: transform var(--transition-spring);
+  z-index: 1;
+}
+
+.mode-toggle[data-mode="pve"] .mode-slider {
+  transform: translateX(100%);
+  background: linear-gradient(135deg, #f43f5e, var(--neon-o));
+  box-shadow: 0 0 15px var(--neon-o-glow);
+}
+
+/* Difficulty Selector Chips */
+.difficulty-chips {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-height: 44px;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.difficulty-chips.hidden {
+  opacity: 0;
+  max-height: 0;
+  pointer-events: none;
+  margin: 0;
+}
+
+.chip-btn {
+  flex: 1;
+  background: rgba(18, 26, 56, 0.4);
+  border: 1px solid var(--surface-glass-border);
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 1px;
+  padding: 6px 10px;
+  border-radius: var(--pill-radius);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-transform: uppercase;
+}
+
+.chip-btn:hover {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.chip-btn.active {
+  background: rgba(255, 0, 127, 0.15);
+  color: var(--neon-o);
+  border-color: var(--neon-o);
+  box-shadow: 0 0 12px var(--neon-o-soft);
+}
+
+/* --------------------------------------------------------------------------
+   4. 3D Tilt Game Board & Cells
+   -------------------------------------------------------------------------- */
+.board-perspective {
+  perspective: 1000px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.board-container {
+  position: relative;
+  width: 100%;
+  max-width: var(--board-max-size);
+  aspect-ratio: 1 / 1;
+  background: var(--surface-glass);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: 28px;
+  padding: 14px;
+  box-shadow: var(--glass-shadow);
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out, box-shadow var(--transition-normal);
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+}
+
+/* Individual Cell */
+.board-cell {
+  position: relative;
+  background: rgba(25, 34, 72, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--cell-radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform 0.1s ease;
+  overflow: hidden;
+}
+
+.board-cell:hover:not(.occupied) {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--surface-glass-hover);
+  box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.1);
+}
+
+.board-cell:active:not(.occupied) {
+  transform: scale(0.96);
+}
+
+.board-cell.occupied {
+  cursor: default;
+}
+
+/* Cell winning highlight */
+.board-cell.winning-cell {
+  background: rgba(255, 215, 0, 0.15) !important;
+  border-color: var(--neon-gold) !important;
+  box-shadow: var(--glow-gold-box) !important;
+  animation: win-pulse 1.4s infinite ease-in-out;
+}
+
+/* Cell Ghost Preview on Hover */
+.board-cell::after {
+  content: '';
+  position: absolute;
+  width: 58%;
+  height: 58%;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.board-container.turn-x .board-cell:hover:not(.occupied)::after {
+  opacity: 0.3;
+  transform: scale(1);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cline x1='20' y1='20' x2='80' y2='80' stroke='%2300f3ff' stroke-width='14' stroke-linecap='round'/%3E%3Cline x1='80' y1='20' x2='20' y2='80' stroke='%2300f3ff' stroke-width='14' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+.board-container.turn-o .board-cell:hover:not(.occupied)::after {
+  opacity: 0.3;
+  transform: scale(1);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='32' fill='none' stroke='%23ff007f' stroke-width='14'/%3E%3C/svg%3E");
+}
+
+/* SVGs rendered inside cells */
+.mark-svg {
+  width: 68%;
+  height: 68%;
+  overflow: visible;
+}
+
+.mark-x line {
+  stroke: var(--neon-x);
+  stroke-width: 13;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 8px var(--neon-x-glow));
+}
+
+.mark-o circle {
+  stroke: var(--neon-o);
+  stroke-width: 13;
+  stroke-linecap: round;
+  fill: none;
+  filter: drop-shadow(0 0 8px var(--neon-o-glow));
+}
+
+/* Laser intersection flash element */
+.laser-flash-circle {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 12px var(--neon-x-glow));
+  opacity: 0;
+}
+
+/* Laser Winning Strike Line Overlay */
+.strike-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.strike-laser-line {
+  stroke: var(--neon-gold);
+  stroke-width: 8;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 12px var(--neon-gold-glow)) drop-shadow(0 0 24px var(--neon-gold));
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+}
+
+/* --------------------------------------------------------------------------
+   5. Action Buttons (New Round & Reset)
+   -------------------------------------------------------------------------- */
+.actions-bar {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.action-btn {
+  flex: 1;
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--surface-glass-border);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 12px 16px;
+  border-radius: var(--pill-radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.action-btn.btn-primary {
+  background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(157, 78, 221, 0.2));
+  border-color: rgba(0, 243, 255, 0.4);
+}
+
+.action-btn.btn-primary:hover {
+  border-color: var(--neon-x);
+  box-shadow: 0 0 20px var(--neon-x-soft);
+}
+
+.action-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   6. Victory / Draw Modal Overlay
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 8, 20, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-normal);
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-card {
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: 28px;
+  padding: 2.5rem 2rem;
+  max-width: 380px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+  transform: scale(0.9) translateY(20px);
+  transition: transform var(--transition-spring);
+}
+
+.modal-overlay.open .modal-card {
+  transform: scale(1) translateY(0);
+}
+
+.modal-symbol {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 1rem;
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.modal-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.8rem;
+}
+
+.modal-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modal-btn {
+  width: 100%;
+  padding: 14px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  border-radius: var(--pill-radius);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all var(--transition-normal);
+  border: none;
+}
+
+.modal-btn-rematch {
+  background: linear-gradient(135deg, var(--neon-x), var(--neon-purple));
+  color: #060814;
+  box-shadow: 0 0 25px var(--neon-x-soft);
+}
+
+.modal-btn-rematch:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 35px var(--neon-x-glow);
+}
+
+.modal-btn-close {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--surface-glass-border);
+}
+
+.modal-btn-close:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}

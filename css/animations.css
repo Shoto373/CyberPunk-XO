@@ -1,0 +1,189 @@
+/* ==========================================================================
+   ANIMATIONS.CSS - Keyframes: Laser Cut, Plasma Ring, Screen-Shake, Pulses
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Laser X Drawing & Spark Flash
+   -------------------------------------------------------------------------- */
+.animate-x-line1 {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: laser-line 0.22s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+}
+
+.animate-x-line2 {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: laser-line 0.22s cubic-bezier(0.2, 0.8, 0.4, 1) 0.12s forwards;
+}
+
+.animate-x-flash {
+  transform-origin: 50% 50%;
+  animation: laser-intersection-flash 0.35s ease-out 0.22s forwards;
+}
+
+@keyframes laser-line {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes laser-intersection-flash {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. Plasma O Ring Spiral Drawing
+   -------------------------------------------------------------------------- */
+.animate-o-ring {
+  stroke-dasharray: 210;
+  stroke-dashoffset: 210;
+  transform-origin: 50% 50%;
+  animation: plasma-ring-spin 0.38s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes plasma-ring-spin {
+  0% {
+    stroke-dashoffset: 210;
+    transform: rotate(-90deg) scale(0.85);
+    opacity: 0.2;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    transform: rotate(270deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. Winning Laser Strike Cut
+   -------------------------------------------------------------------------- */
+.animate-strike {
+  animation: strike-beam-draw 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes strike-beam-draw {
+  0% {
+    stroke-dashoffset: 600;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Screen Shake (Cinematic Triumph)
+   -------------------------------------------------------------------------- */
+.screen-shake {
+  animation: screen-shake-anim 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes screen-shake-anim {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  15% {
+    transform: translate3d(-5px, 3px, 0) rotate(-0.5deg);
+  }
+  30% {
+    transform: translate3d(5px, -4px, 0) rotate(0.5deg);
+  }
+  45% {
+    transform: translate3d(-3px, 3px, 0) rotate(-0.25deg);
+  }
+  60% {
+    transform: translate3d(3px, -2px, 0) rotate(0.25deg);
+  }
+  75% {
+    transform: translate3d(-1px, 1px, 0) rotate(0deg);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Gold Cell Victory Pulse
+   -------------------------------------------------------------------------- */
+@keyframes win-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5), inset 0 0 10px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 35px rgba(255, 215, 0, 0.9), inset 0 0 20px rgba(255, 215, 0, 0.6);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. AI Thinking Pulse
+   -------------------------------------------------------------------------- */
+.thinking-badge.visible {
+  animation: thinking-blink 0.8s infinite ease-in-out;
+}
+
+@keyframes thinking-blink {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 6px var(--neon-o-glow));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7. Ambient Breathing Light for Scoreboard Active Turn
+   -------------------------------------------------------------------------- */
+.score-card.player-x.active {
+  animation: breath-x 2s infinite ease-in-out;
+}
+
+.score-card.player-o.active {
+  animation: breath-o 2s infinite ease-in-out;
+}
+
+@keyframes breath-x {
+  0%, 100% {
+    box-shadow: 0 0 18px rgba(0, 243, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 243, 255, 0.9);
+  }
+}
+
+@keyframes breath-o {
+  0%, 100% {
+    box-shadow: 0 0 18px rgba(255, 0, 127, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 0, 127, 0.9);
+  }
+}
