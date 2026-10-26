@@ -528,33 +528,32 @@ class SoundEngine {
   }
 
   /**
-   * Achievement Unlocked cyber fanfare (Ascending crystal chime)
+   * Cyberpunk descending minor drop for Defeat
    */
-  playAchievement() {
-    this.vibrate([30, 50, 50, 40, 80]);
+  playDefeat() {
+    this.vibrateDefeat();
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;
 
-    const notes = [659.25, 830.61, 987.77, 1318.51]; // E5, G#5, B5, E6
-    const startTime = this.ctx.currentTime + 0.02;
-
-    notes.forEach((freq, i) => {
+    const t = this.ctx.currentTime;
+    const notes = [330, 293.66, 261.63, 220]; // E4, D4, C4, A3
+    notes.forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
+      const noteTime = t + idx * 0.12;
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, startTime + i * 0.08);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, noteTime);
 
-      gain.gain.setValueAtTime(0, startTime + i * 0.08);
-      gain.gain.linearRampToValueAtTime(0.3, startTime + i * 0.08 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + i * 0.08 + 0.35);
+      gain.gain.setValueAtTime(0.25, noteTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.28);
 
       osc.connect(gain);
       gain.connect(this.masterGain);
 
-      osc.start(startTime + i * 0.08);
-      osc.stop(startTime + i * 0.08 + 0.35);
+      osc.start(noteTime);
+      osc.stop(noteTime + 0.28);
     });
   }
 

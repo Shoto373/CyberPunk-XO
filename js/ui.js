@@ -428,86 +428,128 @@ class UIEngine {
   }
 
   showResultModal(result, gameMode, playerSymbol = null, newlyUnlocked = []) {
-    if (result.status === 'win') {
-      const isX = result.winner === 'X';
-      const color = isX ? 'var(--neon-x)' : 'var(--neon-o)';
-      
-      if (this.modalSymbol) {
-        this.modalSymbol.innerHTML = isX ? `
-          <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-x-glow))">
-            <line x1="20" y1="20" x2="80" y2="80" stroke="var(--neon-x)" stroke-width="14" stroke-linecap="round"/>
-            <line x1="80" y1="20" x2="20" y2="80" stroke="var(--neon-x)" stroke-width="14" stroke-linecap="round"/>
-          </svg>
-        ` : `
-          <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-o-glow))">
-            <circle cx="50" cy="50" r="32" fill="none" stroke="var(--neon-o)" stroke-width="14"/>
-          </svg>
-        `;
+    try {
+      if (!this.modal) {
+        this.modal = document.getElementById('result-modal');
+      }
+      if (!this.modalTitle) {
+        this.modalTitle = document.getElementById('modal-title');
+      }
+      if (!this.modalSubtitle) {
+        this.modalSubtitle = document.getElementById('modal-subtitle');
+      }
+      if (!this.modalSymbol) {
+        this.modalSymbol = document.getElementById('modal-symbol');
       }
 
-      if (this.modalTitle) {
-        this.modalTitle.style.color = color;
-        this.modalTitle.textContent = 'ПОБЕДА';
-      }
+      const isX = result && result.winner === 'X';
+      const isO = result && result.winner === 'O';
+      const isTie = !result || result.status === 'tie' || result.winner === 'tie';
 
-      if (this.modalSubtitle) {
+      let titleText = 'ПОБЕДА';
+      let titleColor = isX ? 'var(--neon-x)' : 'var(--neon-o)';
+      let subtitleText = '';
+
+      if (isTie) {
+        titleText = 'НИЧЬЯ';
+        titleColor = 'var(--neon-gold)';
+        subtitleText = 'Боевая ничья в раунде';
+
+        if (this.modalSymbol) {
+          this.modalSymbol.innerHTML = `
+            <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-gold-glow))">
+              <line x1="25" y1="40" x2="75" y2="40" stroke="var(--neon-gold)" stroke-width="12" stroke-linecap="round"/>
+              <line x1="25" y1="60" x2="75" y2="60" stroke="var(--neon-gold)" stroke-width="12" stroke-linecap="round"/>
+            </svg>
+          `;
+        }
+      } else {
+        // Win or Loss determination
         if (gameMode === 'pve') {
-          this.modalSubtitle.textContent = isX ? 'Вы победили кибер-ИИ!' : 'ИИ одержал победу в раунде';
+          if (isX) {
+            titleText = 'ПОБЕДА';
+            titleColor = 'var(--neon-x)';
+            subtitleText = 'Вы победили кибер-ИИ!';
+          } else {
+            titleText = 'ПОРАЖЕНИЕ';
+            titleColor = 'var(--neon-o)';
+            subtitleText = 'ИИ одержал победу в раунде';
+          }
         } else if (gameMode === 'p2p' && playerSymbol) {
           const isMe = result.winner === playerSymbol;
-          this.modalSubtitle.textContent = isMe ? 'Вы победили соперника в сети!' : 'Соперник одержал победу в раунде';
+          titleText = isMe ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ';
+          titleColor = isMe ? (playerSymbol === 'X' ? 'var(--neon-x)' : 'var(--neon-o)') : (playerSymbol === 'X' ? 'var(--neon-o)' : 'var(--neon-x)');
+          subtitleText = isMe ? 'Вы победили соперника в сети!' : 'Соперник одержал победу в раунде';
         } else {
-          this.modalSubtitle.textContent = isX ? 'Победил игрок X' : 'Победил игрок O';
+          titleText = 'ПОБЕДА';
+          titleColor = isX ? 'var(--neon-x)' : 'var(--neon-o)';
+          subtitleText = isX ? 'Победил игрок X' : 'Победил игрок O';
+        }
+
+        if (this.modalSymbol) {
+          this.modalSymbol.innerHTML = isX ? `
+            <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-x-glow))">
+              <line x1="20" y1="20" x2="80" y2="80" stroke="var(--neon-x)" stroke-width="14" stroke-linecap="round"/>
+              <line x1="80" y1="20" x2="20" y2="80" stroke="var(--neon-x)" stroke-width="14" stroke-linecap="round"/>
+            </svg>
+          ` : `
+            <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-o-glow))">
+              <circle cx="50" cy="50" r="32" fill="none" stroke="var(--neon-o)" stroke-width="14"/>
+            </svg>
+          `;
         }
       }
-    } else {
-      if (this.modalSymbol) {
-        this.modalSymbol.innerHTML = `
-          <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-gold-glow))">
-            <line x1="25" y1="40" x2="75" y2="40" stroke="var(--neon-gold)" stroke-width="12" stroke-linecap="round"/>
-            <line x1="25" y1="60" x2="75" y2="60" stroke="var(--neon-gold)" stroke-width="12" stroke-linecap="round"/>
-          </svg>
-        `;
-      }
+
       if (this.modalTitle) {
-        this.modalTitle.style.color = 'var(--neon-gold)';
-        this.modalTitle.textContent = 'НИЧЬЯ';
+        this.modalTitle.style.color = titleColor;
+        this.modalTitle.textContent = titleText;
       }
+
       if (this.modalSubtitle) {
-        this.modalSubtitle.textContent = 'Боевая ничья в раунде';
+        this.modalSubtitle.textContent = subtitleText;
       }
-    }
 
-    // Display newly unlocked achievements directly inside Victory Modal
-    if (this.modalUnlockedAchievements) {
-      if (newlyUnlocked && newlyUnlocked.length > 0) {
-        this.modalUnlockedAchievements.style.display = 'flex';
-        this.modalUnlockedAchievements.innerHTML = `
-          <div class="modal-ach-header">🏆 РАЗБЛОКИРОВАНО:</div>
-          <div class="modal-ach-items">
-            ${newlyUnlocked.map(ach => `
-              <div class="modal-ach-item">
-                <span class="modal-ach-icon">${ach.icon}</span>
-                <span class="modal-ach-title">${ach.title}</span>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      } else {
-        this.modalUnlockedAchievements.style.display = 'none';
-        this.modalUnlockedAchievements.innerHTML = '';
+      // Display newly unlocked achievements directly inside Victory Modal
+      if (this.modalUnlockedAchievements) {
+        const validList = Array.isArray(newlyUnlocked) ? newlyUnlocked.filter(a => a && a.title) : [];
+        if (validList.length > 0) {
+          this.modalUnlockedAchievements.style.display = 'flex';
+          this.modalUnlockedAchievements.innerHTML = `
+            <div class="modal-ach-header">🏆 РАЗБЛОКИРОВАНО:</div>
+            <div class="modal-ach-items">
+              ${validList.map(ach => `
+                <div class="modal-ach-item">
+                  <span class="modal-ach-icon">${ach.icon || '🏆'}</span>
+                  <span class="modal-ach-title">${ach.title || ''}</span>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        } else {
+          this.modalUnlockedAchievements.style.display = 'none';
+          this.modalUnlockedAchievements.innerHTML = '';
+        }
       }
-    }
 
-    setTimeout(() => {
+      // Promptly open the modal overlay (250ms gives strike animation time to start)
+      if (this._modalTimer) clearTimeout(this._modalTimer);
+      this._modalTimer = setTimeout(() => {
+        if (this.modal) {
+          this.modal.classList.add('open');
+          this.modal.setAttribute('aria-hidden', 'false');
+        }
+      }, 250);
+    } catch (e) {
+      console.error('Safe fallback inside showResultModal:', e);
       if (this.modal) {
         this.modal.classList.add('open');
         this.modal.setAttribute('aria-hidden', 'false');
       }
-    }, 650);
+    }
   }
 
   hideModal() {
+    if (this._modalTimer) clearTimeout(this._modalTimer);
     if (this.modal) {
       this.modal.classList.remove('open');
       this.modal.setAttribute('aria-hidden', 'true');

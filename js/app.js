@@ -50,9 +50,16 @@ class CyberTicTacToe {
   registerServiceWorker() {
     if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch((err) => {
-          console.warn('ServiceWorker registration error:', err);
-        });
+        navigator.serviceWorker.register('./sw.js?v=3.2.0')
+          .then((registration) => {
+            // Check for updates immediately
+            if (registration) {
+              registration.update();
+            }
+          })
+          .catch((err) => {
+            console.warn('ServiceWorker registration error:', err);
+          });
       });
     }
   }
@@ -442,7 +449,17 @@ class CyberTicTacToe {
    * Handles user move on cell click
    */
   handleCellClick(index) {
-    if (state.isGameOver || state.isAiThinking) return;
+    if (state.isGameOver) {
+      // Fail-safe: if the round is finished and user clicks the board, immediately ensure modal is displayed
+      const currentRes = {
+        status: state.winner === 'tie' ? 'tie' : 'win',
+        winner: state.winner,
+        line: state.winningLine
+      };
+      ui.showResultModal(currentRes, state.gameMode, state.p2pPlayerSymbol);
+      return;
+    }
+    if (state.isAiThinking) return;
     if (state.board[index] !== null) return;
 
     // In P2P mode, check if it's local player's turn
@@ -470,19 +487,27 @@ class CyberTicTacToe {
 
     // Handle dissolved ghost mark in Infinity XO mode
     if (dissolved !== null) {
-      sound.playDissolve();
-      ui.dissolveCell(dissolved);
+      try {
+        sound.playDissolve();
+        ui.dissolveCell(dissolved);
+      } catch (e) {}
     }
 
     // Render mark SVG with laser/plasma animation
-    ui.renderCell(index, player);
+    try {
+      ui.renderCell(index, player);
+    } catch (e) {
+      console.warn('renderCell warning:', e);
+    }
 
     // Play procedural move sound
-    if (player === 'X') {
-      sound.playMoveX();
-    } else {
-      sound.playMoveO();
-    }
+    try {
+      if (player === 'X') {
+        sound.playMoveX();
+      } else {
+        sound.playMoveO();
+      }
+    } catch (e) {}
 
     // Check game outcome
     const result = state.checkGameEnd();
@@ -492,16 +517,18 @@ class CyberTicTacToe {
       this.handleGameEnd(result);
     } else {
       state.switchTurn();
-      ui.updateScoreboard(state);
+      try { ui.updateScoreboard(state); } catch (e) {}
 
       // Update Ghost mark warning beacon for the new player
       if (state.gameType === 'infinity') {
-        const nextExpiring = state.getExpiringGhostCell(state.currentPlayer);
-        if (nextExpiring !== null) {
-          ui.setGhostWarning(nextExpiring);
-        } else {
-          ui.clearGhostWarnings();
-        }
+        try {
+          const nextExpiring = state.getExpiringGhostCell(state.currentPlayer);
+          if (nextExpiring !== null) {
+            ui.setGhostWarning(nextExpiring);
+          } else {
+            ui.clearGhostWarnings();
+          }
+        } catch (e) {}
       }
 
       // Reset Blitz timer for next turn
@@ -527,28 +554,35 @@ class CyberTicTacToe {
         return;
       }
 
-      const bestMove = getAiMove(
-        state.board,
-        state.aiDifficulty,
-        'O',
-        'X',
-        state.gameType,
-        state.ghostMoves
-      );
+      try {
+        const bestMove = getAiMove(
+          state.board,
+          state.aiDifficulty,
+          'O',
+          'X',
+          state.gameType,
+          state.ghostMoves
+        );
 
-      state.isAiThinking = false;
-      ui.setAiThinking(false);
+        state.isAiThinking = false;
+        ui.setAiThinking(false);
 
-      if (bestMove !== null && state.board[bestMove] === null) {
-        this.executeMove(bestMove, 'O');
+        if (bestMove !== null && state.board[bestMove] === null) {
+          this.executeMove(bestMove, 'O');
+        }
+      } catch (aiErr) {
+        console.error('AI calculation error:', aiErr);
+        state.isAiThinking = false;
+        ui.setAiThinking(false);
       }
     }, delay);
   }
 
   /**
-   * Handles triumph / tie results
+   * Handles triumph / tie / defeat results with guaranteed uncrashable display
    */
   handleGameEnd(result) {
+    if (!result) return;
     try {
       ui.clearGhostWarnings();
 
@@ -571,51 +605,68 @@ class CyberTicTacToe {
         isTie = true;
       }
 
-      const newlyUnlocked = state.recordGameOutcome(isWin, isTie, isLoss, {
-        winningLine: result.line,
-        blitzRemaining: state.blitzTimeRemaining
-      });
-
-      ui.updateScoreboard(state);
-      ui.renderAchievements(state);
-
-      if (result.status === 'win') {
-        ui.drawStrikeLine(result.line, state.gridSize);
-        ui.triggerScreenShake();
-        ui.triggerGlitch();
-        sound.playWin();
-
-        try {
-          const boardRect = ui.boardContainer ? ui.boardContainer.getBoundingClientRect() : null;
-          const originX = boardRect ? boardRect.left + boardRect.width / 2 : window.innerWidth / 2;
-          const originY = boardRect ? boardRect.top + boardRect.height / 2 : window.innerHeight / 2;
-
-          particles.fireVictory(originX, originY);
-          setTimeout(() => particles.fireVictory(originX - 100, originY - 50), 180);
-          setTimeout(() => particles.fireVictory(originX + 100, originY - 50), 360);
-        } catch (pe) {
-          console.warn('Particle victory trigger:', pe);
-        }
-
-        ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol, newlyUnlocked);
-      } else if (result.status === 'tie') {
-        ui.triggerScreenShake();
-        ui.triggerGlitch();
-        sound.playDraw();
-        ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol, newlyUnlocked);
+      let newlyUnlocked = [];
+      try {
+        newlyUnlocked = state.recordGameOutcome(isWin, isTie, isLoss, {
+          winningLine: result.line,
+          blitzRemaining: state.blitzTimeRemaining
+        }) || [];
+      } catch (statErr) {
+        console.warn('Record game outcome error:', statErr);
       }
 
-      if (newlyUnlocked && newlyUnlocked.length > 0) {
+      try { ui.updateScoreboard(state); } catch (e) {}
+      try { ui.renderAchievements(state); } catch (e) {}
+
+      // FX & Audio handling
+      try {
+        if (result.status === 'win') {
+          ui.drawStrikeLine(result.line, state.gridSize);
+          ui.triggerScreenShake();
+          ui.triggerGlitch();
+
+          if (isLoss) {
+            sound.playDefeat();
+          } else {
+            sound.playWin();
+            const boardRect = ui.boardContainer ? ui.boardContainer.getBoundingClientRect() : null;
+            const originX = boardRect ? boardRect.left + boardRect.width / 2 : window.innerWidth / 2;
+            const originY = boardRect ? boardRect.top + boardRect.height / 2 : window.innerHeight / 2;
+            particles.fireVictory(originX, originY);
+            setTimeout(() => particles.fireVictory(originX - 100, originY - 50), 180);
+            setTimeout(() => particles.fireVictory(originX + 100, originY - 50), 360);
+          }
+        } else if (result.status === 'tie') {
+          ui.triggerScreenShake();
+          ui.triggerGlitch();
+          sound.playDraw();
+        }
+      } catch (fxErr) {
+        console.warn('Victory audio/visual error:', fxErr);
+      }
+
+      // Display Result Modal (always guaranteed to run)
+      ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol, newlyUnlocked);
+
+      // Play achievement toasts
+      if (Array.isArray(newlyUnlocked) && newlyUnlocked.length > 0) {
         newlyUnlocked.forEach((ach, index) => {
           setTimeout(() => {
-            sound.playAchievement();
-            ui.showAchievementToast(ach);
+            try {
+              sound.playAchievement();
+              ui.showAchievementToast(ach);
+            } catch (e) {}
           }, index * 900 + 400);
         });
       }
     } catch (err) {
       console.error('Safe fallback in handleGameEnd:', err);
-      ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol);
+      try {
+        ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol, []);
+      } catch (emergencyErr) {
+        const modalEl = document.getElementById('result-modal');
+        if (modalEl) modalEl.classList.add('open');
+      }
     }
   }
 
