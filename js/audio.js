@@ -584,6 +584,49 @@ class SoundEngine {
     osc.start(t);
     osc.stop(t + 0.25);
   }
+
+  /**
+   * Triumphant crystal gold chime fanfare for achievement unlock
+   */
+  playAchievement() {
+    this.vibrate([35, 60, 45, 90]);
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    // Radiant ascending chime triad notes: C5 (523Hz), E5 (659Hz), G5 (784Hz), C6 (1046Hz)
+    const freqs = [523.25, 659.25, 783.99, 1046.50];
+
+    freqs.forEach((freq, idx) => {
+      const noteTime = now + idx * 0.085;
+      const osc = this.ctx.createOscillator();
+      const overtone = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, noteTime);
+
+      overtone.type = 'triangle';
+      overtone.frequency.setValueAtTime(freq * 2, noteTime);
+
+      const noteDuration = idx === freqs.length - 1 ? 0.85 : 0.45;
+      const peakGain = idx === freqs.length - 1 ? 0.32 : 0.22;
+
+      gain.gain.setValueAtTime(0.0001, noteTime);
+      gain.gain.linearRampToValueAtTime(peakGain, noteTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, noteTime + noteDuration);
+
+      osc.connect(gain);
+      overtone.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(noteTime);
+      overtone.start(noteTime);
+      osc.stop(noteTime + noteDuration);
+      overtone.stop(noteTime + noteDuration);
+    });
+  }
 }
 
 export const sound = new SoundEngine();

@@ -159,6 +159,42 @@ class ParticleSystem {
     }
   }
 
+  /**
+   * Spawns radiant golden neon sparks & confetti on achievement unlock
+   */
+  fireAchievement(originX = this.width - 150, originY = 60) {
+    const goldPalette = ['#ffd700', '#f59e0b', '#fbbf24', '#ffffff', '#00f0ff', '#ffe066'];
+    const count = 48;
+
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 7 + 2.5;
+      const isSpark = Math.random() > 0.45;
+
+      this.fxParticles.push({
+        x: originX + (Math.random() - 0.5) * 80,
+        y: originY + (Math.random() - 0.5) * 30,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - (Math.random() * 2.5 + 1),
+        size: Math.random() * 3.5 + 2,
+        color: goldPalette[Math.floor(Math.random() * goldPalette.length)],
+        alpha: 1,
+        life: 1,
+        decay: Math.random() * 0.02 + 0.012,
+        gravity: 0.14,
+        drag: 0.965,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.25,
+        isStreak: isSpark
+      });
+    }
+
+    if (!this.isFxRunning) {
+      this.isFxRunning = true;
+      this.animateFx();
+    }
+  }
+
   animateFx() {
     if (!this.fxCtx) return;
     this.fxCtx.clearRect(0, 0, this.width, this.height);

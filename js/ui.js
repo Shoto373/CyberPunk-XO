@@ -3,6 +3,7 @@
  */
 
 import { ACHIEVEMENTS_LIST } from './state.js';
+import { particles } from './particles.js';
 
 class UIEngine {
   constructor() {
@@ -744,24 +745,43 @@ class UIEngine {
   }
 
   /**
-   * Renders floating achievement unlock card
+   * Renders floating achievement unlock card with spectacle animations
    */
   showAchievementToast(achievement) {
     if (!this.achievementToastContainer) return;
+
+    // Trigger golden celebratory sparks near the notification card
+    const isMobile = window.innerWidth <= 640;
+    const sparkX = isMobile ? window.innerWidth / 2 : Math.max(window.innerWidth - 180, 160);
+    const sparkY = isMobile ? 65 : 75;
+    particles.fireAchievement(sparkX, sparkY);
+
     const toast = document.createElement('div');
     toast.className = 'achievement-toast';
     toast.innerHTML = `
-      <div class="achievement-toast-icon">${achievement.icon}</div>
+      <div class="achievement-toast-glow"></div>
+      <div class="achievement-toast-icon-wrap">
+        <div class="achievement-toast-icon-halo"></div>
+        <div class="achievement-toast-icon">${achievement.icon}</div>
+      </div>
       <div class="achievement-toast-body">
-        <span class="achievement-toast-header">ДОСТИЖЕНИЕ РАЗБЛОКИРОВАНО</span>
+        <div class="achievement-toast-tag">
+          <span class="achievement-tag-pulse"></span>
+          <span class="achievement-tag-text">ТРОФЕЙ РАЗБЛОКИРОВАН</span>
+        </div>
         <span class="achievement-toast-title">${achievement.title}</span>
         <span class="achievement-toast-desc">${achievement.desc}</span>
       </div>
+      <div class="achievement-toast-shimmer"></div>
+      <div class="achievement-toast-progress">
+        <div class="achievement-progress-bar"></div>
+      </div>
     `;
+
     this.achievementToastContainer.appendChild(toast);
     setTimeout(() => {
       if (toast.parentNode) toast.parentNode.removeChild(toast);
-    }, 4200);
+    }, 4500);
   }
 
   /**

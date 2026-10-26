@@ -352,22 +352,103 @@
   }
 }
 
-@keyframes achievement-slide-in {
+/* --------------------------------------------------------------------------
+   Achievement Unlock Spectacle Keyframes
+   -------------------------------------------------------------------------- */
+@keyframes achievement-entry {
   0% {
     opacity: 0;
-    transform: translateY(-25px) scale(0.94);
+    transform: translate3d(40px, -24px, 0) scale(0.85);
+    filter: blur(8px) brightness(2.2);
   }
-  15% {
+  12% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate3d(-6px, 2px, 0) scale(1.03);
+    filter: blur(0px) brightness(1.2);
   }
-  85% {
+  18% {
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: brightness(1);
+  }
+  86% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0px);
   }
   100% {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
+    transform: translate3d(45px, -18px, 0) scale(0.92);
+    filter: blur(5px) brightness(0.8);
+  }
+}
+
+@keyframes trophy-icon-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) rotate(-35deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.35) rotate(12deg);
+  }
+  75% {
+    transform: scale(0.92) rotate(-5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes trophy-halo-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.35;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0.9;
+  }
+}
+
+@keyframes tag-pulse-anim {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.4;
+  }
+}
+
+@keyframes laser-sheen-sweep {
+  0% {
+    left: -120%;
+  }
+  25% {
+    left: 200%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+@keyframes fuse-shrink {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
+  }
+}
+
+@keyframes achievement-border-glow {
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.85;
   }
 }
 

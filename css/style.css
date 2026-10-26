@@ -106,3 +106,13 @@ body {
     gap: 1rem;
   }
 }
+
+@media (max-width: 640px) {
+  .achievement-toast-container {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+  }
+}
