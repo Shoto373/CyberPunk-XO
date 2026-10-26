@@ -1194,17 +1194,54 @@
   pointer-events: none;
   z-index: 999;
   display: none;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
-  background-size: 100% 3px;
-  opacity: 0.35;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.26) 50%
+  );
+  background-size: 100% 4px;
+  opacity: 0.38;
+  overflow: hidden;
 }
 
 body.crt-active #crt-overlay {
   display: block;
+  animation: crt-scanlines-roll 16s linear infinite, crt-flicker 0.18s infinite;
+}
+
+/* CRT tube curved vignette shadow */
+#crt-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 60%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
+  pointer-events: none;
+}
+
+/* Rolling cathode ray scanbeam (classic V-sync refresh line) */
+#crt-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 240, 255, 0.03) 45%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(0, 0, 0, 0.18) 75%,
+    transparent 100%
+  );
+  background-size: 100% 180px;
+  background-repeat: no-repeat;
+  animation: crt-beam-roll 7s linear infinite;
+  pointer-events: none;
 }
 
 body.crt-active {
-  filter: contrast(1.04);
+  filter: contrast(1.06) brightness(1.02);
 }
 
 /* --------------------------------------------------------------------------

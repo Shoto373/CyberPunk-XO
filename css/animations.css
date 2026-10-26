@@ -245,13 +245,43 @@
 /* --------------------------------------------------------------------------
    9. CRT Scanlines & Glitch Keyframes
    -------------------------------------------------------------------------- */
+@keyframes crt-scanlines-roll {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 400px;
+  }
+}
+
+@keyframes crt-beam-roll {
+  0% {
+    background-position-y: -180px;
+  }
+  100% {
+    background-position-y: calc(100vh + 180px);
+  }
+}
+
 @keyframes crt-flicker {
-  0% { opacity: 0.94; }
-  50% { opacity: 1; }
-  52% { opacity: 0.91; }
-  54% { opacity: 0.98; }
-  80% { opacity: 0.95; }
-  100% { opacity: 0.99; }
+  0%, 100% {
+    opacity: 0.38;
+  }
+  48% {
+    opacity: 0.38;
+  }
+  50% {
+    opacity: 0.42;
+  }
+  52% {
+    opacity: 0.34;
+  }
+  54% {
+    opacity: 0.40;
+  }
+  80% {
+    opacity: 0.37;
+  }
 }
 
 .glitch-flash {
