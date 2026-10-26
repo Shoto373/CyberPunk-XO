@@ -22,6 +22,9 @@ class CyberTicTacToe {
     ui.updateDifficultyUI(state.aiDifficulty);
     ui.updateGameTypeCards(state.gameType);
     ui.updateAudioIcon(sound.getMuted());
+    ui.applyTheme(state.theme);
+    ui.applyCrt(state.isCrt);
+    ui.updateBgmUI(sound.getBgmActive());
 
     // Build initial board
     this.rebuildGameBoard();
@@ -48,6 +51,36 @@ class CyberTicTacToe {
         state.setGameType(selectedType);
         ui.updateGameTypeCards(selectedType);
         this.rebuildGameBoard();
+      });
+    });
+
+    // Theme Selection Chips
+    ui.themeChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const theme = chip.getAttribute('data-theme');
+        sound.playClick();
+        state.setTheme(theme);
+        ui.applyTheme(theme);
+        ui.triggerGlitch();
+      });
+    });
+
+    // CRT Scanlines Toggle
+    ui.btnToggleCrts.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sound.playClick();
+        const isCrt = state.toggleCrt();
+        ui.applyCrt(isCrt);
+        ui.triggerGlitch();
+      });
+    });
+
+    // BGM Ambient Toggle
+    ui.btnBgms.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const isPlaying = sound.toggleBgm();
+        ui.updateBgmUI(isPlaying);
+        if (isPlaying) sound.playClick();
       });
     });
 
@@ -265,6 +298,7 @@ class CyberTicTacToe {
     if (result.status === 'win') {
       ui.drawStrikeLine(result.line, state.gridSize);
       ui.triggerScreenShake();
+      ui.triggerGlitch();
       sound.playWin();
 
       const boardRect = ui.boardContainer.getBoundingClientRect();

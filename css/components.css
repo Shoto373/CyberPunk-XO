@@ -960,3 +960,159 @@
   height: 62%;
 }
 
+/* --------------------------------------------------------------------------
+   11. CRT Retro Scanlines & Glitch Mode
+   -------------------------------------------------------------------------- */
+#crt-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  display: none;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%),
+              linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 3px, 6px 100%;
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+  animation: crt-flicker 0.15s infinite;
+}
+
+body.crt-active #crt-overlay {
+  display: block;
+}
+
+body.crt-active {
+  text-shadow: 0 0 2px currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   12. Theme Switcher Chips & BGM Toggle
+   -------------------------------------------------------------------------- */
+.theme-selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.theme-chips-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.theme-chip {
+  background: var(--surface-glass-card);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--pill-radius);
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.theme-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--text-primary);
+}
+
+.theme-chip.active {
+  border-color: var(--neon-x);
+  color: #ffffff;
+  box-shadow: 0 0 15px var(--neon-x-soft);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.theme-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.theme-dot.cyber { background: linear-gradient(135deg, #00f3ff, #ff007f); }
+.theme-dot.matrix { background: linear-gradient(135deg, #00ff66, #10b981); }
+.theme-dot.outrun { background: linear-gradient(135deg, #ff6b00, #c026d3); }
+.theme-dot.blood { background: linear-gradient(135deg, #ff003c, #cbd5e1); }
+
+/* BGM Music Button */
+.bgm-btn {
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-glass-border);
+  color: var(--text-secondary);
+  border-radius: var(--pill-radius);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(12px);
+  position: relative;
+}
+
+.bgm-btn:hover {
+  color: var(--neon-gold);
+  border-color: var(--neon-gold);
+  box-shadow: 0 0 15px var(--neon-gold-soft);
+  transform: translateY(-1px);
+}
+
+.bgm-btn.playing {
+  color: var(--neon-gold);
+  border-color: var(--neon-gold);
+  box-shadow: 0 0 18px var(--neon-gold-glow);
+}
+
+.bgm-btn.playing svg {
+  animation: bgm-pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes bgm-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px var(--neon-gold)); }
+  50% { transform: scale(1.15); filter: drop-shadow(0 0 8px var(--neon-gold-glow)); }
+}
+
+/* CRT Toggle Button in Menu */
+.crt-toggle-btn {
+  background: var(--surface-glass-card);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--pill-radius);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all var(--transition-normal);
+}
+
+.crt-toggle-btn:hover {
+  border-color: var(--neon-x);
+  color: var(--neon-x);
+}
+
+.crt-toggle-btn.active {
+  background: rgba(0, 243, 255, 0.12);
+  border-color: var(--neon-x);
+  color: var(--neon-x);
+  box-shadow: 0 0 12px var(--neon-x-soft);
+}
+
+

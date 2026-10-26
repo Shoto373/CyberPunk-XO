@@ -61,3 +61,83 @@
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* ==========================================================================
+   CYBER THEMES PALETTES
+   ========================================================================== */
+
+/* 1. Matrix Protocol Theme */
+body[data-theme="matrix"] {
+  --bg-deep: #020904;
+  --bg-radial: radial-gradient(circle at 50% 15%, #072a0f 0%, #020904 85%);
+  --surface-glass: rgba(5, 26, 12, 0.7);
+  --surface-glass-card: rgba(8, 36, 16, 0.6);
+  --surface-glass-border: rgba(0, 255, 102, 0.12);
+  --surface-glass-hover: rgba(0, 255, 102, 0.18);
+
+  --neon-x: #00ff66;
+  --neon-x-glow: rgba(0, 255, 102, 0.85);
+  --neon-x-soft: rgba(0, 255, 102, 0.25);
+  --neon-x-ghost: rgba(0, 255, 102, 0.35);
+
+  --neon-o: #10b981;
+  --neon-o-glow: rgba(16, 185, 129, 0.85);
+  --neon-o-soft: rgba(16, 185, 129, 0.25);
+  --neon-o-ghost: rgba(16, 185, 129, 0.35);
+
+  --neon-gold: #a3e635;
+  --neon-gold-glow: rgba(163, 230, 53, 0.85);
+  --glow-x-box: 0 0 25px var(--neon-x-glow), 0 0 50px rgba(0, 255, 102, 0.3);
+  --glow-o-box: 0 0 25px var(--neon-o-glow), 0 0 50px rgba(16, 185, 129, 0.3);
+}
+
+/* 2. Outrun Sunset Theme */
+body[data-theme="outrun"] {
+  --bg-deep: #0d0417;
+  --bg-radial: radial-gradient(circle at 50% 15%, #2d0b42 0%, #0d0417 85%);
+  --surface-glass: rgba(28, 10, 48, 0.7);
+  --surface-glass-card: rgba(38, 14, 64, 0.6);
+  --surface-glass-border: rgba(255, 107, 0, 0.15);
+  --surface-glass-hover: rgba(255, 107, 0, 0.2);
+
+  --neon-x: #ff6b00;
+  --neon-x-glow: rgba(255, 107, 0, 0.85);
+  --neon-x-soft: rgba(255, 107, 0, 0.25);
+  --neon-x-ghost: rgba(255, 107, 0, 0.35);
+
+  --neon-o: #c026d3;
+  --neon-o-glow: rgba(192, 38, 211, 0.85);
+  --neon-o-soft: rgba(192, 38, 211, 0.25);
+  --neon-o-ghost: rgba(192, 38, 211, 0.35);
+
+  --neon-gold: #facc15;
+  --neon-gold-glow: rgba(250, 204, 21, 0.85);
+  --glow-x-box: 0 0 25px var(--neon-x-glow), 0 0 50px rgba(255, 107, 0, 0.3);
+  --glow-o-box: 0 0 25px var(--neon-o-glow), 0 0 50px rgba(192, 38, 211, 0.3);
+}
+
+/* 3. Blood Chrome Theme */
+body[data-theme="blood"] {
+  --bg-deep: #0c0205;
+  --bg-radial: radial-gradient(circle at 50% 15%, #300510 0%, #0c0205 85%);
+  --surface-glass: rgba(32, 6, 14, 0.72);
+  --surface-glass-card: rgba(45, 10, 20, 0.6);
+  --surface-glass-border: rgba(255, 0, 60, 0.15);
+  --surface-glass-hover: rgba(255, 0, 60, 0.2);
+
+  --neon-x: #ff003c;
+  --neon-x-glow: rgba(255, 0, 60, 0.85);
+  --neon-x-soft: rgba(255, 0, 60, 0.25);
+  --neon-x-ghost: rgba(255, 0, 60, 0.35);
+
+  --neon-o: #e2e8f0;
+  --neon-o-glow: rgba(226, 232, 240, 0.85);
+  --neon-o-soft: rgba(226, 232, 240, 0.25);
+  --neon-o-ghost: rgba(226, 232, 240, 0.35);
+
+  --neon-gold: #f59e0b;
+  --neon-gold-glow: rgba(245, 158, 11, 0.85);
+  --glow-x-box: 0 0 25px var(--neon-x-glow), 0 0 50px rgba(255, 0, 60, 0.3);
+  --glow-o-box: 0 0 25px var(--neon-o-glow), 0 0 50px rgba(226, 232, 240, 0.3);
+}
+

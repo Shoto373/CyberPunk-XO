@@ -242,3 +242,43 @@
   }
 }
 
+/* --------------------------------------------------------------------------
+   9. CRT Scanlines & Glitch Keyframes
+   -------------------------------------------------------------------------- */
+@keyframes crt-flicker {
+  0% { opacity: 0.94; }
+  50% { opacity: 1; }
+  52% { opacity: 0.91; }
+  54% { opacity: 0.98; }
+  80% { opacity: 0.95; }
+  100% { opacity: 0.99; }
+}
+
+.glitch-flash {
+  animation: cyber-glitch-hit 0.35s ease-out both;
+}
+
+@keyframes cyber-glitch-hit {
+  0% {
+    transform: translate(0);
+    filter: hue-rotate(0deg);
+  }
+  20% {
+    transform: translate(-3px, 2px) skewX(2deg);
+    filter: drop-shadow(-3px 0 var(--neon-x)) drop-shadow(3px 0 var(--neon-o)) hue-rotate(90deg);
+  }
+  40% {
+    transform: translate(3px, -2px) skewX(-2deg);
+    filter: drop-shadow(3px 0 var(--neon-x)) drop-shadow(-3px 0 var(--neon-o)) hue-rotate(180deg);
+  }
+  60% {
+    transform: translate(-2px, 1px);
+    filter: drop-shadow(-2px 0 var(--neon-gold)) hue-rotate(270deg);
+  }
+  100% {
+    transform: translate(0);
+    filter: hue-rotate(360deg);
+  }
+}
+
+

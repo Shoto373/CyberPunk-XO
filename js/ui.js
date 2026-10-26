@@ -49,8 +49,13 @@ class UIEngine {
     this.diffChipsContainer = document.getElementById('difficulty-chips');
     this.diffChips = Array.from(document.querySelectorAll('.chip-btn'));
 
-    // Audio Buttons (Menu and Header)
+    // Audio & BGM Buttons
     this.btnAudios = Array.from(document.querySelectorAll('.audio-btn'));
+    this.btnBgms = Array.from(document.querySelectorAll('.bgm-btn'));
+
+    // Theme & CRT controls
+    this.themeChips = Array.from(document.querySelectorAll('.theme-chip'));
+    this.btnToggleCrts = Array.from(document.querySelectorAll('.crt-toggle-btn'));
 
     // Actions
     this.btnNewRound = document.getElementById('btn-new-round');
@@ -486,6 +491,65 @@ class UIEngine {
     if (this.hudModePill) {
       this.hudModePill.textContent = labels[selectedType] || 'КЛАССИКА';
     }
+  }
+
+  /**
+   * Applies selected color theme to body and updates chips
+   */
+  applyTheme(theme) {
+    document.body.setAttribute('data-theme', theme);
+    this.themeChips.forEach(chip => {
+      if (chip.getAttribute('data-theme') === theme) {
+        chip.classList.add('active');
+      } else {
+        chip.classList.remove('active');
+      }
+    });
+  }
+
+  /**
+   * Toggles CRT scanlines overlay on body
+   */
+  applyCrt(isCrt) {
+    if (isCrt) {
+      document.body.classList.add('crt-active');
+    } else {
+      document.body.classList.remove('crt-active');
+    }
+    this.btnToggleCrts.forEach(btn => {
+      if (isCrt) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+
+  /**
+   * Updates BGM music button active indicator
+   */
+  updateBgmUI(isPlaying) {
+    this.btnBgms.forEach(btn => {
+      if (isPlaying) {
+        btn.classList.add('playing');
+        btn.setAttribute('title', 'Выключить эмбиент');
+      } else {
+        btn.classList.remove('playing');
+        btn.setAttribute('title', 'Включить кибер-эмбиент');
+      }
+    });
+  }
+
+  /**
+   * Triggers cyber chromatic aberration glitch flash
+   */
+  triggerGlitch() {
+    this.appContainer.classList.remove('glitch-flash');
+    void this.appContainer.offsetWidth;
+    this.appContainer.classList.add('glitch-flash');
+    setTimeout(() => {
+      this.appContainer.classList.remove('glitch-flash');
+    }, 380);
   }
 }
 

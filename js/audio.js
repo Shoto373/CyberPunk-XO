@@ -1,13 +1,20 @@
 /**
- * AUDIO.JS - Procedural Sound Engine using Native Web Audio API
- * No external audio files required. All sounds synthesized in real-time.
+ * AUDIO.JS - Procedural Sound Engine & Ambient Synthwave BGM using Native Web Audio API
+ * No external audio files required. All sounds and music synthesized in real-time.
  */
 
 class SoundEngine {
   constructor() {
     this.ctx = null;
     this.masterGain = null;
+    this.bgmGain = null;
     this.isMuted = localStorage.getItem('cyber_xo_muted') === 'true';
+    this.isBgmActive = localStorage.getItem('cyber_xo_bgm') === 'true';
+    
+    // BGM State
+    this.bgmInterval = null;
+    this.bgmOscillators = [];
+    this.arpStep = 0;
   }
 
   /**
@@ -18,9 +25,18 @@ class SoundEngine {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
       this.ctx = new AudioCtx();
+      
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.35, this.ctx.currentTime);
       this.masterGain.connect(this.ctx.destination);
+
+      this.bgmGain = this.ctx.createGain();
+      this.bgmGain.gain.setValueAtTime(0, this.ctx.currentTime);
+      this.bgmGain.connect(this.masterGain);
+
+      if (this.isBgmActive) {
+        this.startBgm();
+      }
     } else if (this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
@@ -28,7 +44,6 @@ class SoundEngine {
 
   /**
    * Toggles sound on/off and persists setting in localStorage
-   * @returns {boolean} Current muted status
    */
   toggleMute() {
     this.isMuted = !this.isMuted;
@@ -46,6 +61,119 @@ class SoundEngine {
   }
 
   /**
+   * Toggles procedural BGM and persists setting
+   */
+  toggleBgm() {
+    this.initContext();
+    this.isBgmActive = !this.isBgmActive;
+    localStorage.setItem('cyber_xo_bgm', this.isBgmActive.toString());
+
+    if (this.isBgmActive) {
+      this.startBgm();
+    } else {
+      this.stopBgm();
+    }
+    return this.isBgmActive;
+  }
+
+  getBgmActive() {
+    return this.isBgmActive;
+  }
+
+  /**
+   * Starts procedural cyberpunk drone pad & synthwave arpeggio loop
+   */
+  startBgm() {
+    if (!this.ctx || !this.bgmGain) return;
+    this.stopBgm(); // Clean previous if any
+
+    const t = this.ctx.currentTime;
+    this.bgmGain.gain.cancelScheduledValues(t);
+    this.bgmGain.gain.setValueAtTime(0, t);
+    this.bgmGain.gain.linearRampToValueAtTime(0.18, t + 1.5);
+
+    // 1. Deep Sub Drone (Root + Fifth: A1 55Hz & E2 82.4Hz)
+    const drone1 = this.ctx.createOscillator();
+    const drone2 = this.ctx.createOscillator();
+    const droneFilter = this.ctx.createBiquadFilter();
+
+    drone1.type = 'sawtooth';
+    drone1.frequency.setValueAtTime(55, t);
+
+    drone2.type = 'triangle';
+    drone2.frequency.setValueAtTime(82.4, t);
+
+    droneFilter.type = 'lowpass';
+    droneFilter.frequency.setValueAtTime(180, t);
+
+    drone1.connect(droneFilter);
+    drone2.connect(droneFilter);
+    droneFilter.connect(this.bgmGain);
+
+    drone1.start(t);
+    drone2.start(t);
+    this.bgmOscillators.push(drone1, drone2);
+
+    // 2. Cyberpunk Pentatonic Arpeggiator Loop
+    // Scale: A minor pentatonic (A2, C3, D3, E3, G3, A3)
+    const arpScale = [110, 130.81, 146.83, 164.81, 196.00, 220, 196.00, 164.81];
+    this.arpStep = 0;
+
+    this.bgmInterval = setInterval(() => {
+      if (!this.ctx || !this.isBgmActive || this.isMuted) return;
+
+      const now = this.ctx.currentTime;
+      const freq = arpScale[this.arpStep % arpScale.length];
+      this.arpStep++;
+
+      const arpOsc = this.ctx.createOscillator();
+      const arpGain = this.ctx.createGain();
+      const arpFilter = this.ctx.createBiquadFilter();
+
+      arpOsc.type = 'triangle';
+      arpOsc.frequency.setValueAtTime(freq, now);
+
+      arpFilter.type = 'bandpass';
+      arpFilter.frequency.setValueAtTime(freq * 1.5, now);
+      arpFilter.Q.setValueAtTime(2.5, now);
+
+      arpGain.gain.setValueAtTime(0, now);
+      arpGain.gain.linearRampToValueAtTime(0.08, now + 0.02);
+      arpGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+      arpOsc.connect(arpFilter);
+      arpFilter.connect(arpGain);
+      arpGain.connect(this.bgmGain);
+
+      arpOsc.start(now);
+      arpOsc.stop(now + 0.28);
+    }, 280);
+  }
+
+  /**
+   * Smoothly stops procedural BGM
+   */
+  stopBgm() {
+    if (this.bgmInterval) {
+      clearInterval(this.bgmInterval);
+      this.bgmInterval = null;
+    }
+
+    if (this.bgmGain && this.ctx) {
+      const t = this.ctx.currentTime;
+      this.bgmGain.gain.cancelScheduledValues(t);
+      this.bgmGain.gain.linearRampToValueAtTime(0, t + 0.6);
+    }
+
+    setTimeout(() => {
+      this.bgmOscillators.forEach(osc => {
+        try { osc.stop(); osc.disconnect(); } catch (e) {}
+      });
+      this.bgmOscillators = [];
+    }, 650);
+  }
+
+  /**
    * High-tech laser whistle for Player X move
    */
   playMoveX() {
@@ -58,11 +186,9 @@ class SoundEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sawtooth';
-    // Frequency sweeps down rapidly: 1200Hz -> 220Hz
     osc.frequency.setValueAtTime(1200, t);
     osc.frequency.exponentialRampToValueAtTime(220, t + 0.18);
 
-    // Filter to soften the harshness of sawtooth
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(3200, t);
@@ -95,7 +221,6 @@ class SoundEngine {
     osc1.type = 'sine';
     osc2.type = 'triangle';
 
-    // Sub-bass pitch dive
     osc1.frequency.setValueAtTime(150, t);
     osc1.frequency.exponentialRampToValueAtTime(65, t + 0.28);
 
@@ -116,7 +241,7 @@ class SoundEngine {
   }
 
   /**
-   * Soft futuristic high-tech click for buttons and UI toggles
+   * Soft futuristic high-tech click
    */
   playClick() {
     if (this.isMuted) return;
@@ -149,7 +274,6 @@ class SoundEngine {
     this.initContext();
     if (!this.ctx) return;
 
-    // Frequencies: C5 (523.25), E5 (659.25), G5 (783.99), C6 (1046.50)
     const notes = [523.25, 659.25, 783.99, 1046.50];
     const startTime = this.ctx.currentTime + 0.05;
 
@@ -214,7 +338,6 @@ class SoundEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'triangle';
-    // Frequency sweeps upwards and dissolves: 300Hz -> 1800Hz
     osc.frequency.setValueAtTime(300, t);
     osc.frequency.exponentialRampToValueAtTime(1800, t + 0.28);
 
@@ -285,4 +408,3 @@ class SoundEngine {
 }
 
 export const sound = new SoundEngine();
-

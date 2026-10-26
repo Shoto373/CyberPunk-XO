@@ -21,7 +21,9 @@ const STORAGE_KEYS = {
   SCORES: 'cyber_xo_scores',
   MODE: 'cyber_xo_mode',
   TYPE: 'cyber_xo_game_type',
-  DIFF: 'cyber_xo_diff'
+  DIFF: 'cyber_xo_diff',
+  THEME: 'cyber_xo_theme',
+  CRT: 'cyber_xo_crt'
 };
 
 class GameState {
@@ -29,7 +31,9 @@ class GameState {
     this.gameType = localStorage.getItem(STORAGE_KEYS.TYPE) || 'classic'; // 'classic' | 'infinity' | 'blitz' | 'grid4'
     this.gameMode = localStorage.getItem(STORAGE_KEYS.MODE) || 'pve';     // 'pvp' | 'pve'
     this.aiDifficulty = localStorage.getItem(STORAGE_KEYS.DIFF) || 'unbeatable'; // 'easy' | 'medium' | 'unbeatable'
-    
+    this.theme = localStorage.getItem(STORAGE_KEYS.THEME) || 'cyber';     // 'cyber' | 'matrix' | 'outrun' | 'blood'
+    this.isCrt = localStorage.getItem(STORAGE_KEYS.CRT) === 'true';
+
     this.gridSize = this.gameType === 'grid4' ? 4 : 3;
     const totalCells = this.gridSize * this.gridSize;
     this.board = Array(totalCells).fill(null);
@@ -100,6 +104,20 @@ class GameState {
       this.aiDifficulty = diff;
       localStorage.setItem(STORAGE_KEYS.DIFF, diff);
     }
+  }
+
+  setTheme(theme) {
+    if (['cyber', 'matrix', 'outrun', 'blood'].includes(theme)) {
+      this.theme = theme;
+      localStorage.setItem(STORAGE_KEYS.THEME, theme);
+    }
+    return this.theme;
+  }
+
+  toggleCrt() {
+    this.isCrt = !this.isCrt;
+    localStorage.setItem(STORAGE_KEYS.CRT, this.isCrt.toString());
+    return this.isCrt;
   }
 
   /**
