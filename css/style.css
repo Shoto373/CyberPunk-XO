@@ -35,6 +35,7 @@ body {
   position: relative;
   user-select: none;
   -webkit-user-select: none;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 /* Background & FX Canvases */
