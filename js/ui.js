@@ -2,7 +2,7 @@
  * UI.JS - DOM Rendering, 3D Board Tilt, SVG Mark Animations, Screen Navigation & HUD
  */
 
-import { ACHIEVEMENTS_LIST } from './state.js';
+import { ACHIEVEMENTS_LIST, CYBER_RANKS, SKINS_X, SKINS_O } from './state.js';
 import { particles } from './particles.js';
 
 class UIEngine {
@@ -11,6 +11,28 @@ class UIEngine {
     this.appContainer = document.getElementById('app-container');
     this.screenMenu = document.getElementById('screen-menu');
     this.screenGame = document.getElementById('screen-game');
+
+    // Cyber Rank & XP Elements
+    this.rankBadges = Array.from(document.querySelectorAll('.rank-badge'));
+    this.rankTitleEls = Array.from(document.querySelectorAll('.rank-title-text'));
+    this.rankLevelEls = Array.from(document.querySelectorAll('.rank-level-number'));
+    this.xpProgressBars = Array.from(document.querySelectorAll('.rank-xp-fill'));
+    this.xpTextEls = Array.from(document.querySelectorAll('.rank-xp-text'));
+
+    // Skins Modal & Buttons
+    this.btnOpenSkins = Array.from(document.querySelectorAll('.btn-open-skins'));
+    this.skinsModal = document.getElementById('skins-modal');
+    this.btnSkinsClose = document.getElementById('btn-skins-close');
+    this.btnSkinsCloseX = document.getElementById('btn-skins-close-x');
+    this.skinsTabX = document.getElementById('tab-skins-x');
+    this.skinsTabO = document.getElementById('tab-skins-o');
+    this.skinsGrid = document.getElementById('skins-grid');
+
+    // Rules Modal & Buttons
+    this.btnOpenRules = Array.from(document.querySelectorAll('.btn-open-rules'));
+    this.rulesModal = document.getElementById('rules-modal');
+    this.btnRulesClose = document.getElementById('btn-rules-close');
+    this.btnRulesCloseX = document.getElementById('btn-rules-close-x');
 
     // Menu Elements
     this.modeCards = Array.from(document.querySelectorAll('.mode-card'));
@@ -210,38 +232,110 @@ class UIEngine {
   }
 
   /**
-   * Renders laser X mark inside cell
+   * Generates SVG markup for mark X depending on active skin
    */
-  renderMarkX(cell) {
-    cell.classList.add('occupied');
-    cell.innerHTML = `
-      <svg class="mark-svg mark-x" viewBox="0 0 100 100">
-        <line class="animate-x-line1" x1="20" y1="20" x2="80" y2="80" />
-        <line class="animate-x-line2" x1="80" y1="20" x2="20" y2="80" />
-        <circle class="laser-flash-circle animate-x-flash" cx="50" cy="50" r="10" />
-      </svg>
-    `;
+  getMarkXHtml(skinId = 'classic_x') {
+    switch (skinId) {
+      case 'katanas_x':
+        return `
+          <svg class="mark-svg mark-x skin-katanas" viewBox="0 0 100 100">
+            <line class="animate-x-line1" x1="16" y1="16" x2="74" y2="74" stroke="var(--neon-x)" stroke-width="8" stroke-linecap="round"/>
+            <line class="animate-x-line2" x1="84" y1="16" x2="26" y2="74" stroke="var(--neon-x)" stroke-width="8" stroke-linecap="round"/>
+            <line x1="70" y1="78" x2="78" y2="70" stroke="var(--neon-gold)" stroke-width="6" stroke-linecap="round"/>
+            <line x1="22" y1="70" x2="30" y2="78" stroke="var(--neon-gold)" stroke-width="6" stroke-linecap="round"/>
+            <line x1="74" y1="74" x2="86" y2="86" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+            <line x1="26" y1="74" x2="14" y2="86" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+            <circle class="laser-flash-circle animate-x-flash" cx="50" cy="45" r="7" fill="var(--neon-x)"/>
+          </svg>
+        `;
+      case 'lightning_x':
+        return `
+          <svg class="mark-svg mark-x skin-lightning" viewBox="0 0 100 100">
+            <polygon class="animate-x-flash" points="56,12 26,52 48,52 38,88 74,44 52,44" fill="var(--neon-x)" stroke="#fff" stroke-width="3" stroke-linejoin="round" style="filter: drop-shadow(0 0 10px var(--neon-x-glow))"/>
+          </svg>
+        `;
+      case 'skull_x':
+        return `
+          <svg class="mark-svg mark-x skin-skull" viewBox="0 0 100 100">
+            <path class="animate-x-line1" d="M26 40 C26 22 74 22 74 40 C74 52 68 58 64 64 L36 64 C32 58 26 52 26 40 Z" fill="none" stroke="var(--neon-x)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="34" y="38" width="10" height="9" rx="2" fill="var(--neon-x)"/>
+            <rect x="56" y="38" width="10" height="9" rx="2" fill="var(--neon-x)"/>
+            <line x1="42" y1="64" x2="42" y2="74" stroke="var(--neon-x)" stroke-width="4" stroke-linecap="round"/>
+            <line x1="50" y1="64" x2="50" y2="76" stroke="var(--neon-x)" stroke-width="4" stroke-linecap="round"/>
+            <line x1="58" y1="64" x2="58" y2="74" stroke="var(--neon-x)" stroke-width="4" stroke-linecap="round"/>
+            <line x1="38" y1="74" x2="62" y2="74" stroke="var(--neon-x)" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+        `;
+      case 'classic_x':
+      default:
+        return `
+          <svg class="mark-svg mark-x" viewBox="0 0 100 100">
+            <line class="animate-x-line1" x1="20" y1="20" x2="80" y2="80" />
+            <line class="animate-x-line2" x1="80" y1="20" x2="20" y2="80" />
+            <circle class="laser-flash-circle animate-x-flash" cx="50" cy="50" r="10" />
+          </svg>
+        `;
+    }
   }
 
   /**
-   * Renders plasma ring O mark inside cell
+   * Generates SVG markup for mark O depending on active skin
    */
-  renderMarkO(cell) {
-    cell.classList.add('occupied');
-    cell.innerHTML = `
-      <svg class="mark-svg mark-o" viewBox="0 0 100 100">
-        <circle class="animate-o-ring" cx="50" cy="50" r="33" />
-      </svg>
-    `;
+  getMarkOHtml(skinId = 'classic_o') {
+    switch (skinId) {
+      case 'shield_o':
+        return `
+          <svg class="mark-svg mark-o skin-shield" viewBox="0 0 100 100">
+            <polygon class="animate-o-ring" points="50,15 82,32 82,68 50,85 18,68 18,32" fill="rgba(255, 0, 127, 0.08)" stroke="var(--neon-o)" stroke-width="7" stroke-linejoin="round" style="filter: drop-shadow(0 0 12px var(--neon-o-glow))"/>
+            <polygon points="50,28 70,39 70,61 50,72 30,61 30,39" fill="none" stroke="var(--neon-gold)" stroke-width="2" stroke-dasharray="4 3"/>
+            <circle cx="50" cy="50" r="5" fill="#fff"/>
+          </svg>
+        `;
+      case 'eye_o':
+        return `
+          <svg class="mark-svg mark-o skin-eye" viewBox="0 0 100 100">
+            <path class="animate-o-ring" d="M14 50 Q50 16 86 50 Q50 84 14 50 Z" fill="none" stroke="var(--neon-o)" stroke-width="7" stroke-linejoin="round" style="filter: drop-shadow(0 0 12px var(--neon-o-glow))"/>
+            <circle cx="50" cy="50" r="17" fill="none" stroke="var(--neon-x)" stroke-width="3" stroke-dasharray="6 3"/>
+            <circle cx="50" cy="50" r="8" fill="var(--neon-o)"/>
+            <circle cx="53" cy="47" r="2.5" fill="#fff"/>
+          </svg>
+        `;
+      case 'portal_o':
+        return `
+          <svg class="mark-svg mark-o skin-portal" viewBox="0 0 100 100">
+            <circle class="animate-o-ring" cx="50" cy="50" r="34" fill="none" stroke="var(--neon-o)" stroke-width="6" stroke-dasharray="14 6" style="filter: drop-shadow(0 0 12px var(--neon-o-glow))"/>
+            <circle cx="50" cy="50" r="22" fill="none" stroke="var(--neon-gold)" stroke-width="4" stroke-dasharray="8 4"/>
+            <circle cx="50" cy="50" r="9" fill="var(--neon-o)"/>
+            <circle cx="50" cy="50" r="3.5" fill="#fff"/>
+          </svg>
+        `;
+      case 'classic_o':
+      default:
+        return `
+          <svg class="mark-svg mark-o" viewBox="0 0 100 100">
+            <circle class="animate-o-ring" cx="50" cy="50" r="33" />
+          </svg>
+        `;
+    }
   }
 
-  renderCell(index, player) {
+  renderMarkX(cell, skinId = 'classic_x') {
+    cell.classList.add('occupied');
+    cell.innerHTML = this.getMarkXHtml(skinId);
+  }
+
+  renderMarkO(cell, skinId = 'classic_o') {
+    cell.classList.add('occupied');
+    cell.innerHTML = this.getMarkOHtml(skinId);
+  }
+
+  renderCell(index, player, skinId = null) {
     const cell = this.cells[index];
     if (!cell) return;
     if (player === 'X') {
-      this.renderMarkX(cell);
+      this.renderMarkX(cell, skinId || 'classic_x');
     } else if (player === 'O') {
-      this.renderMarkO(cell);
+      this.renderMarkO(cell, skinId || 'classic_o');
     }
   }
 
@@ -895,6 +989,167 @@ class UIEngine {
     if (this.p2pReactionsBar) {
       this.p2pReactionsBar.style.display = isVisible ? 'flex' : 'none';
     }
+  }
+
+  /**
+   * Updates all Rank & XP widgets in Menu and In-game HUD
+   */
+  updateRankUI(gameState) {
+    if (!gameState || !gameState.getRankInfo) return;
+    const rank = gameState.getRankInfo();
+
+    this.rankLevelEls.forEach(el => {
+      if (el) el.textContent = `LVL ${rank.level}`;
+    });
+
+    this.rankTitleEls.forEach(el => {
+      if (el) el.textContent = `${rank.icon} ${rank.title}`;
+    });
+
+    this.xpProgressBars.forEach(bar => {
+      if (bar) bar.style.width = `${rank.progressPercent}%`;
+    });
+
+    this.xpTextEls.forEach(el => {
+      if (el) {
+        if (rank.isMaxRank) {
+          el.textContent = `${rank.currentXp} XP (MAX)`;
+        } else {
+          el.textContent = `${rank.currentXp} / ${rank.nextRankMinXp} XP`;
+        }
+      }
+    });
+  }
+
+  /**
+   * Displays celebratory Level-Up notification
+   */
+  showLevelUpToast(rankInfo) {
+    if (!this.achievementToastContainer) return;
+    try {
+      particles.fireAchievement(window.innerWidth / 2, 75);
+    } catch (e) {}
+
+    const toast = document.createElement('div');
+    toast.className = 'achievement-toast level-up-toast';
+    toast.innerHTML = `
+      <div class="achievement-toast-glow" style="background: radial-gradient(circle, rgba(0, 243, 255, 0.4), transparent 70%)"></div>
+      <div class="achievement-toast-icon-wrap" style="border-color: var(--neon-x);">
+        <div class="achievement-toast-icon-halo" style="background: var(--neon-x);"></div>
+        <div class="achievement-toast-icon">${rankInfo.icon}</div>
+      </div>
+      <div class="achievement-toast-body">
+        <div class="achievement-toast-tag" style="background: rgba(0, 243, 255, 0.2); border-color: var(--neon-x);">
+          <span class="achievement-tag-pulse" style="background: var(--neon-x)"></span>
+          <span class="achievement-tag-text" style="color: var(--neon-x)">НОВЫЙ КИБЕР-РАНГ!</span>
+        </div>
+        <span class="achievement-toast-title" style="color: #fff;">УРОВЕНЬ ${rankInfo.level}: ${rankInfo.title}</span>
+        <span class="achievement-toast-desc">Кибер-система разблокировала новые скины и возможности!</span>
+      </div>
+      <div class="achievement-toast-shimmer"></div>
+      <div class="achievement-toast-progress">
+        <div class="achievement-progress-bar" style="background: linear-gradient(90deg, var(--neon-x), #fff);"></div>
+      </div>
+    `;
+
+    this.achievementToastContainer.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 5000);
+  }
+
+  /**
+   * Skins Customization Modal
+   */
+  showSkinsModal() {
+    if (this.skinsModal) {
+      this.skinsModal.classList.add('open');
+      this.skinsModal.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  hideSkinsModal() {
+    if (this.skinsModal) {
+      this.skinsModal.classList.remove('open');
+      this.skinsModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  renderSkinsModal(gameState, activeTab = 'X', onSelectCallback) {
+    if (!this.skinsGrid) return;
+    const isX = activeTab === 'X';
+
+    if (this.skinsTabX) this.skinsTabX.classList.toggle('active', isX);
+    if (this.skinsTabO) this.skinsTabO.classList.toggle('active', !isX);
+
+    const skinsList = isX ? SKINS_X : SKINS_O;
+    const currentEquipped = gameState.getSkin(activeTab);
+
+    this.skinsGrid.innerHTML = skinsList.map(skin => {
+      const isUnlocked = gameState.isSkinUnlocked(activeTab, skin.id);
+      const isEquipped = currentEquipped === skin.id;
+      const previewSvg = isX ? this.getMarkXHtml(skin.id) : this.getMarkOHtml(skin.id);
+
+      return `
+        <div class="skin-card ${isEquipped ? 'equipped' : ''} ${!isUnlocked ? 'locked' : ''}" data-skin-id="${skin.id}" data-symbol="${activeTab}">
+          <div class="skin-preview-wrap">
+            ${previewSvg}
+          </div>
+          <div class="skin-info">
+            <span class="skin-name">${skin.name}</span>
+            <span class="skin-desc">${skin.desc}</span>
+            <span class="skin-req" style="color: ${isUnlocked ? 'var(--neon-gold)' : 'var(--text-muted)'}">
+              ${isUnlocked ? (isEquipped ? '✓ ЭКИПИРОВАНО' : 'РАЗБЛОКИРОВАНО') : `🔒 ${skin.unlockReq}`}
+            </span>
+          </div>
+          <button class="skin-btn-equip ${isEquipped ? 'active' : ''}" type="button" ${!isUnlocked ? 'disabled' : ''}>
+            ${isEquipped ? 'В БОЮ' : (isUnlocked ? 'ВЫБРАТЬ' : 'ЗАБЛОКИРОВАНО')}
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    this.skinsGrid.querySelectorAll('.skin-card:not(.locked)').forEach(card => {
+      card.addEventListener('click', () => {
+        const skinId = card.getAttribute('data-skin-id');
+        const symbol = card.getAttribute('data-symbol');
+        if (onSelectCallback) onSelectCallback(symbol, skinId);
+      });
+    });
+  }
+
+  /**
+   * Rules / Help Modal
+   */
+  showRulesModal() {
+    if (this.rulesModal) {
+      this.rulesModal.classList.add('open');
+      this.rulesModal.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  hideRulesModal() {
+    if (this.rulesModal) {
+      this.rulesModal.classList.remove('open');
+      this.rulesModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  /**
+   * Keyboard focus navigation on board
+   */
+  setKeyboardFocus(index) {
+    this.cells.forEach((cell, idx) => {
+      if (idx === index) {
+        cell.classList.add('keyboard-focus');
+      } else {
+        cell.classList.remove('keyboard-focus');
+      }
+    });
+  }
+
+  clearKeyboardFocus() {
+    this.cells.forEach(cell => cell.classList.remove('keyboard-focus'));
   }
 }
 

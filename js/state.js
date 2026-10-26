@@ -56,6 +56,32 @@ export const ACHIEVEMENTS_LIST = [
   { id: 'SYNTHWAVE_VIBE', icon: '🎵', title: 'Синтетический пульс', desc: 'Включите фоновый Synthwave саундтрек' }
 ];
 
+export const CYBER_RANKS = [
+  { level: 1, title: 'SCRIPT KIDDIE', minXp: 0, icon: '👾' },
+  { level: 2, title: 'GLITCH ROOKIE', minXp: 150, icon: '⚡' },
+  { level: 3, title: 'CYBER RUNNER', minXp: 400, icon: '🏃' },
+  { level: 4, title: 'NEON PHANTOM', minXp: 800, icon: '👻' },
+  { level: 5, title: 'STREET SAMURAI', minXp: 1400, icon: '🗡️' },
+  { level: 7, title: 'GRID HACKER', minXp: 2200, icon: '💻' },
+  { level: 10, title: 'NETRUNNER MASTER', minXp: 3500, icon: '🧠' },
+  { level: 15, title: 'NEUROMANCER PRO', minXp: 5500, icon: '👑' },
+  { level: 20, title: 'MATRIX OVERLORD', minXp: 8500, icon: '🌌' }
+];
+
+export const SKINS_X = [
+  { id: 'classic_x', name: 'Лазерный X', icon: '✕', desc: 'Классический двойной фотонный луч', unlockReq: 'Открыто изначально' },
+  { id: 'katanas_x', name: 'Плазменные клинки', icon: '⚔️', desc: 'Скрещенные катаны уличного самурая', reqWins: 5, unlockReq: '5 побед' },
+  { id: 'lightning_x', name: 'Кибер-молния', icon: '⚡', desc: 'Высоковольтный неоновый разряд', reqLevel: 3, unlockReq: 'Уровень 3' },
+  { id: 'skull_x', name: 'Череп взломщика', icon: '💀', desc: 'Голографический череп нетраннера', reqAch: 'NEUROMANCER', unlockReq: 'Победа над Нейромантом' }
+];
+
+export const SKINS_O = [
+  { id: 'classic_o', name: 'Плазменный круг', icon: '◯', desc: 'Классическое фотонное кольцо', unlockReq: 'Открыто изначально' },
+  { id: 'shield_o', name: 'Силовой щит', icon: '🛡️', desc: 'Гексагональное защитное поле', reqLevel: 2, unlockReq: 'Уровень 2' },
+  { id: 'eye_o', name: 'Кибер-око', icon: '👁️', desc: 'Оптический сканер корпорации', reqMatches: 10, unlockReq: '10 матчей' },
+  { id: 'portal_o', name: 'Сингулярность', icon: '🌀', desc: 'Квантовый гравитационный портал', reqLevel: 5, unlockReq: 'Уровень 5' }
+];
+
 const STORAGE_KEYS = {
   SCORES: 'cyber_xo_scores',
   MODE: 'cyber_xo_mode',
@@ -64,7 +90,10 @@ const STORAGE_KEYS = {
   THEME: 'cyber_xo_theme',
   CRT: 'cyber_xo_crt',
   STATS: 'cyber_xo_stats',
-  ACHIEVEMENTS: 'cyber_xo_achievements'
+  ACHIEVEMENTS: 'cyber_xo_achievements',
+  XP: 'cyber_xo_xp',
+  SKIN_X: 'cyber_xo_skin_x',
+  SKIN_O: 'cyber_xo_skin_o'
 };
 
 class GameState {
@@ -83,6 +112,9 @@ class GameState {
     this.scores = this.loadScores();
     this.stats = this.loadStats();
     this.achievements = this.loadAchievements();
+    this.xp = this.loadXp();
+    this.skinX = localStorage.getItem(STORAGE_KEYS.SKIN_X) || 'classic_x';
+    this.skinO = localStorage.getItem(STORAGE_KEYS.SKIN_O) || 'classic_o';
     this.p2pPlayerSymbol = 'X';
     this.roundMoveCount = 0;
     this.roundDissolveCount = 0;
@@ -302,6 +334,125 @@ class GameState {
     try {
       localStorage.setItem(STORAGE_KEYS.ACHIEVEMENTS, JSON.stringify(this.achievements));
     } catch (e) {}
+  }
+
+  loadXp() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.XP);
+      if (saved) return Number(saved) || 0;
+    } catch (e) {}
+    return 0;
+  }
+
+  saveXp() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.XP, String(this.xp));
+    } catch (e) {}
+  }
+
+  /**
+   * Calculates current Cyber Rank details based on XP
+   */
+  getRankInfo(customXp = null) {
+    const xp = customXp !== null ? customXp : this.xp;
+    let currentRank = CYBER_RANKS[0];
+    let nextRank = null;
+
+    for (let i = 0; i < CYBER_RANKS.length; i++) {
+      if (xp >= CYBER_RANKS[i].minXp) {
+        currentRank = CYBER_RANKS[i];
+        nextRank = CYBER_RANKS[i + 1] || null;
+      } else {
+        break;
+      }
+    }
+
+    let progressPercent = 100;
+    let xpInCurrentLevel = 0;
+    let xpNeededForNext = 0;
+
+    if (nextRank) {
+      const range = nextRank.minXp - currentRank.minXp;
+      xpInCurrentLevel = xp - currentRank.minXp;
+      xpNeededForNext = nextRank.minXp - xp;
+      progressPercent = Math.min(100, Math.max(0, Math.round((xpInCurrentLevel / range) * 100)));
+    }
+
+    return {
+      level: currentRank.level,
+      title: currentRank.title,
+      icon: currentRank.icon,
+      currentXp: xp,
+      minXp: currentRank.minXp,
+      nextRankMinXp: nextRank ? nextRank.minXp : xp,
+      nextRankTitle: nextRank ? nextRank.title : null,
+      xpNeededForNext,
+      progressPercent,
+      isMaxRank: !nextRank
+    };
+  }
+
+  /**
+   * Adds XP and detects level-up events
+   */
+  addXp(amount) {
+    if (!amount || amount <= 0) return { added: 0, newXp: this.xp, leveledUp: false, rankInfo: this.getRankInfo() };
+
+    const oldRank = this.getRankInfo();
+    this.xp += amount;
+    this.saveXp();
+    const newRank = this.getRankInfo();
+
+    const leveledUp = newRank.level > oldRank.level;
+    return {
+      added: amount,
+      newXp: this.xp,
+      oldLevel: oldRank.level,
+      newLevel: newRank.level,
+      leveledUp,
+      rankInfo: newRank
+    };
+  }
+
+  /**
+   * Checks if a skin is unlocked for a given symbol
+   */
+  isSkinUnlocked(symbol, skinId) {
+    const list = symbol === 'X' ? SKINS_X : SKINS_O;
+    const skin = list.find(s => s.id === skinId);
+    if (!skin) return false;
+
+    // Default skins are always unlocked
+    if (skinId === 'classic_x' || skinId === 'classic_o') return true;
+
+    const rank = this.getRankInfo();
+
+    if (skin.reqLevel && rank.level >= skin.reqLevel) return true;
+    if (skin.reqWins && this.stats.wins >= skin.reqWins) return true;
+    if (skin.reqMatches && this.stats.totalMatches >= skin.reqMatches) return true;
+    if (skin.reqAch && this.achievements.includes(skin.reqAch)) return true;
+
+    return false;
+  }
+
+  /**
+   * Sets the active skin for X or O
+   */
+  setSkin(symbol, skinId) {
+    if (!this.isSkinUnlocked(symbol, skinId)) return false;
+
+    if (symbol === 'X') {
+      this.skinX = skinId;
+      try { localStorage.setItem(STORAGE_KEYS.SKIN_X, skinId); } catch (e) {}
+    } else {
+      this.skinO = skinId;
+      try { localStorage.setItem(STORAGE_KEYS.SKIN_O, skinId); } catch (e) {}
+    }
+    return true;
+  }
+
+  getSkin(symbol) {
+    return symbol === 'X' ? this.skinX : this.skinO;
   }
 
   swapP2PSymbol() {

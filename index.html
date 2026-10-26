@@ -18,10 +18,10 @@
   <link rel="apple-touch-icon" href="icon-192.svg">
 
   <!-- Modular CSS Hierarchy -->
-  <link rel="stylesheet" href="css/variables.css?v=3.2.0">
-  <link rel="stylesheet" href="css/style.css?v=3.2.0">
-  <link rel="stylesheet" href="css/components.css?v=3.2.0">
-  <link rel="stylesheet" href="css/animations.css?v=3.2.0">
+  <link rel="stylesheet" href="css/variables.css?v=3.3.0">
+  <link rel="stylesheet" href="css/style.css?v=3.3.0">
+  <link rel="stylesheet" href="css/components.css?v=3.3.0">
+  <link rel="stylesheet" href="css/animations.css?v=3.3.0">
 </head>
 <body>
   <!-- Fullscreen CRT Scanlines Overlay -->
@@ -55,19 +55,27 @@
           <span class="logo-title">CYBER XO</span>
         </div>
 
-        <!-- Controls: Stats, BGM Music & Sound Effects -->
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <button class="stats-btn" id="btn-open-stats" aria-label="Кибер-статистика" title="Статистика и Достижения">
+        <!-- Controls: Rules, Skins, Stats, BGM Music & Sound Effects -->
+        <div style="display: flex; gap: 0.4rem; align-items: center;">
+          <button class="header-icon-btn btn-open-rules" aria-label="Правила и управление" title="Правила режимов и клавиши (H / I)">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          </button>
+
+          <button class="header-icon-btn btn-open-skins" aria-label="Кибер-скины" title="Кастомизация скинов (K)">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.28 19.59 10.6 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+          </button>
+
+          <button class="stats-btn btn-open-stats" id="btn-open-stats" aria-label="Кибер-статистика" title="Статистика и Достижения">
             <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-6h2v6zm4 0h-2v-4h2v4zm-8 0H6v-2h2v2z"/></svg>
           </button>
 
-          <button class="bgm-btn" aria-label="Вкл/Выкл фоновую музыку" title="Включить кибер-эмбиент">
+          <button class="bgm-btn" aria-label="Вкл/Выкл фоновую музыку" title="Включить кибер-эмбиент (B)">
             <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;">
               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
             </svg>
           </button>
 
-          <button class="audio-btn" aria-label="Переключить звук" title="Вкл/Выкл эффекты">
+          <button class="audio-btn" aria-label="Переключить звук" title="Вкл/Выкл эффекты (M)">
             <svg class="icon-sound-on" viewBox="0 0 24 24">
               <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
             </svg>
@@ -77,6 +85,20 @@
           </button>
         </div>
       </header>
+
+      <!-- Cyber Rank & Level Progress Card -->
+      <div class="rank-profile-card">
+        <div class="rank-info-row">
+          <div class="rank-badge-group">
+            <span class="rank-level-number">LVL 1</span>
+            <span class="rank-title-text">👾 SCRIPT KIDDIE</span>
+          </div>
+          <span class="rank-xp-text">0 / 150 XP</span>
+        </div>
+        <div class="rank-xp-track">
+          <div class="rank-xp-fill" style="width: 0%;"></div>
+        </div>
+      </div>
 
       <!-- Hero Title -->
       <div class="menu-hero">
@@ -236,18 +258,26 @@
 
         <span class="hud-mode-pill" id="hud-mode-pill">Классика 3×3</span>
 
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <button class="stats-btn hud-stats-btn" id="btn-hud-stats" aria-label="Кибер-статистика" title="Статистика и Достижения">
+        <div style="display: flex; gap: 0.4rem; align-items: center;">
+          <button class="header-icon-btn btn-open-rules" aria-label="Правила и управление" title="Правила режимов и клавиши (H / I)">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          </button>
+
+          <button class="header-icon-btn btn-open-skins" aria-label="Кибер-скины" title="Кастомизация скинов (K)">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.28 19.59 10.6 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+          </button>
+
+          <button class="stats-btn hud-stats-btn btn-open-stats" id="btn-hud-stats" aria-label="Кибер-статистика" title="Статистика и Достижения">
             <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-6h2v6zm4 0h-2v-4h2v4zm-8 0H6v-2h2v2z"/></svg>
           </button>
 
-          <button class="bgm-btn" aria-label="Вкл/Выкл фоновую музыку" title="Включить кибер-эмбиент">
-            <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;">
+          <button class="bgm-btn" aria-label="Вкл/Выкл фоновую музыку" title="Включить кибер-эмбиент (B)">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;">
               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
             </svg>
           </button>
 
-          <button class="audio-btn" aria-label="Переключить звук" title="Вкл/Выкл эффекты">
+          <button class="audio-btn" aria-label="Переключить звук" title="Вкл/Выкл эффекты (M)">
             <svg class="icon-sound-on" viewBox="0 0 24 24">
               <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
             </svg>
@@ -430,10 +460,108 @@
     </div>
   </aside>
 
+  <!-- Cyber Skins Customization Modal -->
+  <aside class="modal-overlay skins-modal-overlay" id="skins-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-card skins-modal-card">
+      <div class="stats-modal-header">
+        <div class="stats-title-group">
+          <span style="font-size: 1.3rem;">🎨</span>
+          <h2 class="stats-modal-title">КИБЕР-СКИНЫ</h2>
+        </div>
+        <button class="stats-modal-close-x" id="btn-skins-close-x" type="button">&times;</button>
+      </div>
+
+      <!-- Tab Switcher (X / O) -->
+      <div class="skins-tabs-bar">
+        <button class="skins-tab-btn active" id="tab-skins-x" type="button">СИМВОЛ X</button>
+        <button class="skins-tab-btn" id="tab-skins-o" type="button">СИМВОЛ O</button>
+      </div>
+
+      <!-- Skins Grid Container -->
+      <div class="skins-grid" id="skins-grid">
+        <!-- Populated dynamically via ui.renderSkinsModal -->
+      </div>
+
+      <div class="stats-modal-actions">
+        <button class="modal-btn modal-btn-rematch" id="btn-skins-close" type="button">ЗАКРЫТЬ</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Cyber Rules & Controls Guide Modal -->
+  <aside class="modal-overlay rules-modal-overlay" id="rules-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-card rules-modal-card">
+      <div class="stats-modal-header">
+        <div class="stats-title-group">
+          <span style="font-size: 1.3rem;">📖</span>
+          <h2 class="stats-modal-title">ПРАВИЛА И РЕЖИМЫ</h2>
+        </div>
+        <button class="stats-modal-close-x" id="btn-rules-close-x" type="button">&times;</button>
+      </div>
+
+      <!-- Mode Explanations -->
+      <div class="rules-content">
+        <div class="rule-card">
+          <div class="rule-card-header">
+            <span class="rule-icon">⚔️</span>
+            <span class="rule-title">КЛАССИКА 3×3</span>
+          </div>
+          <p class="rule-desc">Соберите победную линию из 3 символов по горизонтали, вертикали или диагонали.</p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-card-header">
+            <span class="rule-icon">⏳</span>
+            <span class="rule-title">БЕСКОНЕЧНЫЙ (INFINITY XO)</span>
+          </div>
+          <p class="rule-desc">У каждого игрока максимум 3 знака на поле. <strong>4-й ход растворяет ваш 1-й знак!</strong> Старейший знак пульсирует предупреждающим маяком.</p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-card-header">
+            <span class="rule-icon">⚡</span>
+            <span class="rule-title">БЛИЦ 5 СЕК</span>
+          </div>
+          <p class="rule-desc">На каждый ход даётся ровно 5 секунд. Таймер тикает быстрее, а при сгорании времени ход делается случайно!</p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-card-header">
+            <span class="rule-icon">📐</span>
+            <span class="rule-title">СЕТКА 4×4</span>
+          </div>
+          <p class="rule-desc">Увеличенная тактическая матрица 16 клеток. Чтобы победить, соберите <strong>4 знака в непрерывный ряд</strong>!</p>
+        </div>
+
+        <!-- Hotkeys Section -->
+        <div class="rule-card hotkeys-card">
+          <div class="rule-card-header">
+            <span class="rule-icon">⌨️</span>
+            <span class="rule-title">УПРАВЛЕНИЕ С КЛАВИАТУРЫ</span>
+          </div>
+          <div class="hotkeys-grid">
+            <div class="hotkey-item"><kbd>1-9</kbd> / <kbd>NumPad</kbd> <span>Быстрый ход в клетку</span></div>
+            <div class="hotkey-item"><kbd>Стрелки / WASD</kbd> <span>Навигация по полю</span></div>
+            <div class="hotkey-item"><kbd>Пробел / Enter</kbd> <span>Сделать ход</span></div>
+            <div class="hotkey-item"><kbd>R</kbd> <span>Новый раунд</span></div>
+            <div class="hotkey-item"><kbd>M / B</kbd> <span>Звуки / Музыка</span></div>
+            <div class="hotkey-item"><kbd>C / T</kbd> <span>CRT-эффект / Смена темы</span></div>
+            <div class="hotkey-item"><kbd>K / H</kbd> <span>Скины / Правила</span></div>
+            <div class="hotkey-item"><kbd>Esc</kbd> <span>Закрыть окно</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-modal-actions">
+        <button class="modal-btn modal-btn-rematch" id="btn-rules-close" type="button">ПОНЯТНО</button>
+      </div>
+    </div>
+  </aside>
+
   <!-- PeerJS WebRTC Library for Serverless P2P Multiplayer -->
   <script src="js/peerjs.min.js"></script>
 
   <!-- ES6 Module Entry Point -->
-  <script type="module" src="js/app.js?v=3.2.0"></script>
+  <script type="module" src="js/app.js?v=3.3.0"></script>
 </body>
 </html>

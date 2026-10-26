@@ -32,6 +32,10 @@ class CyberTicTacToe {
     // Check passive milestones & render initial achievements list in DOM
     state.checkPassiveAchievements();
     ui.renderAchievements(state);
+    ui.updateRankUI(state);
+
+    this.keyboardFocusIndex = null;
+    this.activeSkinTab = 'X';
 
     // Build initial board
     this.rebuildGameBoard();
@@ -50,7 +54,7 @@ class CyberTicTacToe {
   registerServiceWorker() {
     if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=3.2.0')
+        navigator.serviceWorker.register('./sw.js?v=3.3.0')
           .then((registration) => {
             // Check for updates immediately
             if (registration) {
@@ -435,6 +439,50 @@ class CyberTicTacToe {
       });
     }
 
+    // Skins Customization Modal Handlers
+    const openSkins = () => {
+      sound.playClick();
+      ui.renderSkinsModal(state, this.activeSkinTab, (symbol, skinId) => {
+        sound.playClick();
+        state.setSkin(symbol, skinId);
+        ui.renderSkinsModal(state, symbol, (s, id) => state.setSkin(s, id));
+        ui.showToast(`🎨 СКИН ВЫБРАН`);
+      });
+      ui.showSkinsModal();
+    };
+
+    ui.btnOpenSkins.forEach(btn => btn.addEventListener('click', openSkins));
+    if (ui.btnSkinsClose) ui.btnSkinsClose.addEventListener('click', () => { sound.playClick(); ui.hideSkinsModal(); });
+    if (ui.btnSkinsCloseX) ui.btnSkinsCloseX.addEventListener('click', () => { sound.playClick(); ui.hideSkinsModal(); });
+
+    if (ui.skinsTabX) {
+      ui.skinsTabX.addEventListener('click', () => {
+        this.activeSkinTab = 'X';
+        sound.playClick();
+        ui.renderSkinsModal(state, 'X', (s, id) => { state.setSkin(s, id); ui.renderSkinsModal(state, 'X'); });
+      });
+    }
+
+    if (ui.skinsTabO) {
+      ui.skinsTabO.addEventListener('click', () => {
+        this.activeSkinTab = 'O';
+        sound.playClick();
+        ui.renderSkinsModal(state, 'O', (s, id) => { state.setSkin(s, id); ui.renderSkinsModal(state, 'O'); });
+      });
+    }
+
+    // Rules & Game Modes Guide Modal Handlers
+    const openRules = () => {
+      sound.playClick();
+      ui.showRulesModal();
+    };
+    ui.btnOpenRules.forEach(btn => btn.addEventListener('click', openRules));
+    if (ui.btnRulesClose) ui.btnRulesClose.addEventListener('click', () => { sound.playClick(); ui.hideRulesModal(); });
+    if (ui.btnRulesCloseX) ui.btnRulesCloseX.addEventListener('click', () => { sound.playClick(); ui.hideRulesModal(); });
+
+    // Keyboard Controls & Shortcuts
+    this.bindKeyboardControls();
+
     // Unlock Web Audio on first user interaction anywhere
     const unlockAudio = () => {
       sound.initContext();
@@ -443,6 +491,150 @@ class CyberTicTacToe {
     window.addEventListener('click', unlockAudio, { once: true });
     window.addEventListener('keydown', unlockAudio, { once: true });
     window.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+  }
+
+  /**
+   * Keyboard shortcuts & NumPad / Arrow controls
+   */
+  bindKeyboardControls() {
+    window.addEventListener('keydown', (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+        return;
+      }
+
+      // Escape: Close all active modals
+      if (e.key === 'Escape') {
+        ui.hideModal();
+        ui.hideStatsModal();
+        ui.hideSkinsModal();
+        ui.hideRulesModal();
+        return;
+      }
+
+      // R: Rematch / New round
+      if (e.code === 'KeyR') {
+        this.handleRematchClick();
+        return;
+      }
+
+      // M: Sound mute toggle
+      if (e.code === 'KeyM') {
+        sound.initContext();
+        const isMuted = sound.toggleMute();
+        ui.updateAudioIcon(isMuted);
+        if (!isMuted) sound.playClick();
+        return;
+      }
+
+      // B: Synthwave BGM toggle
+      if (e.code === 'KeyB') {
+        const isPlaying = sound.toggleBgm();
+        ui.updateBgmUI(isPlaying);
+        return;
+      }
+
+      // C: CRT scanlines toggle
+      if (e.code === 'KeyC') {
+        sound.playClick();
+        const isCrt = state.toggleCrt();
+        ui.applyCrt(isCrt);
+        ui.triggerGlitch();
+        return;
+      }
+
+      // T: Cycle theme
+      if (e.code === 'KeyT') {
+        sound.playClick();
+        const themes = ['cyber', 'matrix', 'outrun', 'blood'];
+        const nextIdx = (themes.indexOf(state.theme) + 1) % themes.length;
+        const newTheme = themes[nextIdx];
+        state.setTheme(newTheme);
+        ui.applyTheme(newTheme);
+        ui.triggerGlitch();
+        return;
+      }
+
+      // H or I: Rules modal toggle
+      if (e.code === 'KeyH' || e.code === 'KeyI') {
+        if (ui.rulesModal && ui.rulesModal.classList.contains('open')) {
+          ui.hideRulesModal();
+        } else {
+          ui.showRulesModal();
+        }
+        return;
+      }
+
+      // K: Skins modal toggle
+      if (e.code === 'KeyK') {
+        if (ui.skinsModal && ui.skinsModal.classList.contains('open')) {
+          ui.hideSkinsModal();
+        } else {
+          ui.renderSkinsModal(state, this.activeSkinTab, (s, id) => state.setSkin(s, id));
+          ui.showSkinsModal();
+        }
+        return;
+      }
+
+      // In-game board controls
+      if (ui.screenGame && ui.screenGame.classList.contains('active')) {
+        const total = state.gridSize * state.gridSize;
+
+        // NumPad 1..9 for 3x3
+        if (state.gridSize === 3) {
+          const numpadMap = {
+            'Numpad7': 0, 'Numpad8': 1, 'Numpad9': 2,
+            'Numpad4': 3, 'Numpad5': 4, 'Numpad6': 5,
+            'Numpad1': 6, 'Numpad2': 7, 'Numpad3': 8
+          };
+          if (numpadMap[e.code] !== undefined) {
+            e.preventDefault();
+            this.handleCellClick(numpadMap[e.code]);
+            return;
+          }
+        }
+
+        // Top digit row 1..9
+        if (e.code.startsWith('Digit')) {
+          const digit = parseInt(e.code.replace('Digit', ''), 10);
+          if (digit >= 1 && digit <= total) {
+            e.preventDefault();
+            this.handleCellClick(digit - 1);
+            return;
+          }
+        }
+
+        // Arrow / WASD navigation
+        let focus = this.keyboardFocusIndex !== null ? this.keyboardFocusIndex : 0;
+        let moved = false;
+        const size = state.gridSize;
+
+        if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+          focus = (focus - size + total) % total;
+          moved = true;
+        } else if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+          focus = (focus + size) % total;
+          moved = true;
+        } else if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+          focus = (focus % size === 0) ? focus + size - 1 : focus - 1;
+          moved = true;
+        } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+          focus = (focus % size === size - 1) ? focus - size + 1 : focus + 1;
+          moved = true;
+        } else if (e.code === 'Enter' || e.code === 'Space') {
+          e.preventDefault();
+          if (this.keyboardFocusIndex !== null) {
+            this.handleCellClick(this.keyboardFocusIndex);
+          }
+          return;
+        }
+
+        if (moved) {
+          e.preventDefault();
+          this.keyboardFocusIndex = focus;
+          ui.setKeyboardFocus(focus);
+        }
+      }
+    });
   }
 
   /**
@@ -495,7 +687,8 @@ class CyberTicTacToe {
 
     // Render mark SVG with laser/plasma animation
     try {
-      ui.renderCell(index, player);
+      const activeSkin = state.getSkin(player);
+      ui.renderCell(index, player, activeSkin);
     } catch (e) {
       console.warn('renderCell warning:', e);
     }
@@ -617,6 +810,26 @@ class CyberTicTacToe {
 
       try { ui.updateScoreboard(state); } catch (e) {}
       try { ui.renderAchievements(state); } catch (e) {}
+
+      // Award Cyber XP and handle level progression
+      let xpEarned = isWin ? 75 : (isTie ? 40 : 25);
+      if (newlyUnlocked && newlyUnlocked.length > 0) {
+        xpEarned += newlyUnlocked.length * 150;
+      }
+      try {
+        const xpRes = state.addXp(xpEarned);
+        ui.updateRankUI(state);
+        if (xpRes.leveledUp) {
+          setTimeout(() => {
+            try {
+              sound.playLevelUp();
+              ui.showLevelUpToast(xpRes.rankInfo);
+            } catch (e) {}
+          }, 800);
+        }
+      } catch (xpErr) {
+        console.warn('XP award error:', xpErr);
+      }
 
       // FX & Audio handling
       try {

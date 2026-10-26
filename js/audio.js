@@ -626,6 +626,41 @@ class SoundEngine {
       overtone.stop(noteTime + noteDuration);
     });
   }
+
+  /**
+   * Radiant cyber power-up surge for Level Up (Major pentatonic ascent + crystal sweep)
+   */
+  playLevelUp() {
+    this.vibrate([40, 60, 40, 80, 120]);
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const notes = [261.63, 329.63, 392.00, 493.88, 587.33, 783.99];
+
+    notes.forEach((freq, idx) => {
+      const noteTime = now + idx * 0.075;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, noteTime);
+
+      const duration = idx === notes.length - 1 ? 0.9 : 0.35;
+      const peak = idx === notes.length - 1 ? 0.38 : 0.22;
+
+      gain.gain.setValueAtTime(0.0001, noteTime);
+      gain.gain.linearRampToValueAtTime(peak, noteTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, noteTime + duration);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(noteTime);
+      osc.stop(noteTime + duration);
+    });
+  }
 }
 
 export const sound = new SoundEngine();
