@@ -545,61 +545,70 @@ class CyberTicTacToe {
    * Handles triumph / tie results
    */
   handleGameEnd(result) {
-    ui.clearGhostWarnings();
-    ui.updateScoreboard(state);
+    try {
+      ui.clearGhostWarnings();
+      ui.updateScoreboard(state);
 
-    if (result.status === 'win') {
-      ui.drawStrikeLine(result.line, state.gridSize);
-      ui.triggerScreenShake();
-      ui.triggerGlitch();
-      sound.playWin();
+      if (result.status === 'win') {
+        ui.drawStrikeLine(result.line, state.gridSize);
+        ui.triggerScreenShake();
+        ui.triggerGlitch();
+        sound.playWin();
 
-      const boardRect = ui.boardContainer.getBoundingClientRect();
-      const originX = boardRect.left + boardRect.width / 2;
-      const originY = boardRect.top + boardRect.height / 2;
+        try {
+          const boardRect = ui.boardContainer ? ui.boardContainer.getBoundingClientRect() : null;
+          const originX = boardRect ? boardRect.left + boardRect.width / 2 : window.innerWidth / 2;
+          const originY = boardRect ? boardRect.top + boardRect.height / 2 : window.innerHeight / 2;
 
-      particles.fireVictory(originX, originY);
-      setTimeout(() => particles.fireVictory(originX - 100, originY - 50), 180);
-      setTimeout(() => particles.fireVictory(originX + 100, originY - 50), 360);
+          particles.fireVictory(originX, originY);
+          setTimeout(() => particles.fireVictory(originX - 100, originY - 50), 180);
+          setTimeout(() => particles.fireVictory(originX + 100, originY - 50), 360);
+        } catch (pe) {
+          console.warn('Particle victory trigger:', pe);
+        }
 
-      ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol);
-    } else if (result.status === 'tie') {
-      ui.triggerScreenShake();
-      ui.triggerGlitch();
-      sound.playDraw();
-      ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol);
-    }
-
-    // Record game outcome and check for achievements
-    let isWin = false;
-    let isTie = false;
-    let isLoss = false;
-
-    if (result.status === 'win') {
-      if (state.gameMode === 'pve') {
-        isWin = result.winner === 'X';
-        isLoss = result.winner === 'O';
-      } else if (state.gameMode === 'p2p') {
-        isWin = result.winner === state.p2pPlayerSymbol;
-        isLoss = result.winner !== state.p2pPlayerSymbol;
-      } else {
-        isWin = true; // In local PvP
+        ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol);
+      } else if (result.status === 'tie') {
+        ui.triggerScreenShake();
+        ui.triggerGlitch();
+        sound.playDraw();
+        ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol);
       }
-    } else if (result.status === 'tie') {
-      isTie = true;
-    }
 
-    const newlyUnlocked = state.recordGameOutcome(isWin, isTie, isLoss, {
-      winningLine: result.line,
-      blitzRemaining: state.blitzTimeRemaining
-    });
-    if (newlyUnlocked && newlyUnlocked.length > 0) {
-      newlyUnlocked.forEach((ach, index) => {
-        setTimeout(() => {
-          sound.playAchievement();
-          ui.showAchievementToast(ach);
-        }, index * 900 + 400);
+      // Record game outcome and check for achievements
+      let isWin = false;
+      let isTie = false;
+      let isLoss = false;
+
+      if (result.status === 'win') {
+        if (state.gameMode === 'pve') {
+          isWin = result.winner === 'X';
+          isLoss = result.winner === 'O';
+        } else if (state.gameMode === 'p2p') {
+          isWin = result.winner === state.p2pPlayerSymbol;
+          isLoss = result.winner !== state.p2pPlayerSymbol;
+        } else {
+          isWin = true; // In local PvP
+        }
+      } else if (result.status === 'tie') {
+        isTie = true;
+      }
+
+      const newlyUnlocked = state.recordGameOutcome(isWin, isTie, isLoss, {
+        winningLine: result.line,
+        blitzRemaining: state.blitzTimeRemaining
       });
+      if (newlyUnlocked && newlyUnlocked.length > 0) {
+        newlyUnlocked.forEach((ach, index) => {
+          setTimeout(() => {
+            sound.playAchievement();
+            ui.showAchievementToast(ach);
+          }, index * 900 + 400);
+        });
+      }
+    } catch (err) {
+      console.error('Safe fallback in handleGameEnd:', err);
+      ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol);
     }
   }
 

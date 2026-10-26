@@ -80,7 +80,9 @@ class UIEngine {
     this.modal = document.getElementById('result-modal');
     this.modalSymbol = document.getElementById('modal-symbol');
     this.modalTitle = document.getElementById('modal-title');
+    this.modalSubtitle = document.getElementById('modal-subtitle');
     this.btnModalRematch = document.getElementById('btn-modal-rematch');
+    this.btnModalStats = document.getElementById('btn-modal-stats');
     this.btnModalClose = document.getElementById('btn-modal-close');
 
     // Rematch Notification Elements (P2P mode)
@@ -429,49 +431,69 @@ class UIEngine {
       const isX = result.winner === 'X';
       const color = isX ? 'var(--neon-x)' : 'var(--neon-o)';
       
-      this.modalSymbol.innerHTML = isX ? `
-        <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-x-glow))">
-          <line x1="20" y1="20" x2="80" y2="80" stroke="var(--neon-x)" stroke-width="14" stroke-linecap="round"/>
-          <line x1="80" y1="20" x2="20" y2="80" stroke="var(--neon-x)" stroke-width="14" stroke-linecap="round"/>
-        </svg>
-      ` : `
-        <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-o-glow))">
-          <circle cx="50" cy="50" r="32" fill="none" stroke="var(--neon-o)" stroke-width="14"/>
-        </svg>
-      `;
+      if (this.modalSymbol) {
+        this.modalSymbol.innerHTML = isX ? `
+          <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-x-glow))">
+            <line x1="20" y1="20" x2="80" y2="80" stroke="var(--neon-x)" stroke-width="14" stroke-linecap="round"/>
+            <line x1="80" y1="20" x2="20" y2="80" stroke="var(--neon-x)" stroke-width="14" stroke-linecap="round"/>
+          </svg>
+        ` : `
+          <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-o-glow))">
+            <circle cx="50" cy="50" r="32" fill="none" stroke="var(--neon-o)" stroke-width="14"/>
+          </svg>
+        `;
+      }
 
-      this.modalTitle.style.color = color;
-      this.modalTitle.textContent = 'ПОБЕДА';
+      if (this.modalTitle) {
+        this.modalTitle.style.color = color;
+        this.modalTitle.textContent = 'ПОБЕДА';
+      }
 
-      if (gameMode === 'pve') {
-        this.modalSubtitle.textContent = isX ? 'Вы победили кибер-ИИ!' : 'ИИ одержал победу в раунде';
-      } else if (gameMode === 'p2p' && playerSymbol) {
-        const isMe = result.winner === playerSymbol;
-        this.modalSubtitle.textContent = isMe ? 'Вы победили соперника в сети!' : 'Соперник одержал победу в раунде';
-      } else {
-        this.modalSubtitle.textContent = isX ? 'Победил игрок X' : 'Победил игрок O';
+      if (this.modalSubtitle) {
+        if (gameMode === 'pve') {
+          this.modalSubtitle.textContent = isX ? 'Вы победили кибер-ИИ!' : 'ИИ одержал победу в раунде';
+        } else if (gameMode === 'p2p' && playerSymbol) {
+          const isMe = result.winner === playerSymbol;
+          this.modalSubtitle.textContent = isMe ? 'Вы победили соперника в сети!' : 'Соперник одержал победу в раунде';
+        } else {
+          this.modalSubtitle.textContent = isX ? 'Победил игрок X' : 'Победил игрок O';
+        }
       }
     } else {
-      this.modalSymbol.innerHTML = `
-        <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-gold-glow))">
-          <line x1="25" y1="40" x2="75" y2="40" stroke="var(--neon-gold)" stroke-width="12" stroke-linecap="round"/>
-          <line x1="25" y1="60" x2="75" y2="60" stroke="var(--neon-gold)" stroke-width="12" stroke-linecap="round"/>
-        </svg>
-      `;
-      this.modalTitle.style.color = 'var(--neon-gold)';
-      this.modalTitle.textContent = 'НИЧЬЯ';
-      this.modalSubtitle.textContent = 'Боевая ничья в раунде';
+      if (this.modalSymbol) {
+        this.modalSymbol.innerHTML = `
+          <svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 15px var(--neon-gold-glow))">
+            <line x1="25" y1="40" x2="75" y2="40" stroke="var(--neon-gold)" stroke-width="12" stroke-linecap="round"/>
+            <line x1="25" y1="60" x2="75" y2="60" stroke="var(--neon-gold)" stroke-width="12" stroke-linecap="round"/>
+          </svg>
+        `;
+      }
+      if (this.modalTitle) {
+        this.modalTitle.style.color = 'var(--neon-gold)';
+        this.modalTitle.textContent = 'НИЧЬЯ';
+      }
+      if (this.modalSubtitle) {
+        this.modalSubtitle.textContent = 'Боевая ничья в раунде';
+      }
     }
 
     setTimeout(() => {
-      this.modal.classList.add('open');
-      this.modal.setAttribute('aria-hidden', 'false');
+      if (this.modal) {
+        this.modal.classList.add('open');
+        this.modal.setAttribute('aria-hidden', 'false');
+      }
     }, 650);
   }
 
   hideModal() {
-    this.modal.classList.remove('open');
-    this.modal.setAttribute('aria-hidden', 'true');
+    if (this.modal) {
+      this.modal.classList.remove('open');
+      this.modal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  hideResultModal() {
+    this.hideModal();
   }
 
   clearBoard() {
