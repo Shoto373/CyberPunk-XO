@@ -138,7 +138,8 @@ class CyberTicTacToe {
 
     // BGM Ambient Music Toggle
     ui.btnBgms.forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const isPlaying = sound.toggleBgm();
         ui.updateBgmUI(isPlaying);
         if (isPlaying) sound.playClick();
@@ -300,10 +301,10 @@ class CyberTicTacToe {
     // Unlock Web Audio on first user interaction anywhere
     const unlockAudio = () => {
       sound.initContext();
-      window.removeEventListener('click', unlockAudio);
-      window.removeEventListener('touchstart', unlockAudio);
+      ui.updateBgmUI(sound.getBgmActive());
     };
     window.addEventListener('click', unlockAudio, { once: true });
+    window.addEventListener('keydown', unlockAudio, { once: true });
     window.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
   }
 

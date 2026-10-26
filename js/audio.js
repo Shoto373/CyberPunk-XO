@@ -9,11 +9,13 @@ class SoundEngine {
     this.masterGain = null;
     this.bgmGain = null;
     this.isMuted = localStorage.getItem('cyber_xo_muted') === 'true';
-    this.isBgmActive = localStorage.getItem('cyber_xo_bgm') === 'true';
+    // Active by default unless user explicitly turned it off
+    this.isBgmActive = localStorage.getItem('cyber_xo_bgm') !== 'false';
     
     // BGM State
     this.bgmInterval = null;
     this.bgmOscillators = [];
+    this.stopBgmTimeout = null;
     this.arpStep = 0;
   }
 
@@ -38,7 +40,13 @@ class SoundEngine {
         this.startBgm();
       }
     } else if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().then(() => {
+        if (this.isBgmActive && !this.bgmInterval) {
+          this.startBgm();
+        }
+      });
+    } else if (this.isBgmActive && !this.bgmInterval) {
+      this.startBgm();
     }
   }
 
@@ -81,73 +89,143 @@ class SoundEngine {
   }
 
   /**
-   * Starts procedural cyberpunk drone pad & synthwave arpeggio loop
+   * Starts procedural cyberpunk synthwave soundtrack:
+   * Analog Sub-Bass + Atmospheric Cyber Pad + Neon Arpeggio + Sub Pulse
    */
   startBgm() {
     if (!this.ctx || !this.bgmGain) return;
-    this.stopBgm(); // Clean previous if any
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+
+    // Clear previous interval and scheduled stops immediately
+    if (this.bgmInterval) {
+      clearInterval(this.bgmInterval);
+      this.bgmInterval = null;
+    }
+    if (this.stopBgmTimeout) {
+      clearTimeout(this.stopBgmTimeout);
+      this.stopBgmTimeout = null;
+    }
+
+    // Clean any running oscillators
+    this.bgmOscillators.forEach(osc => {
+      try { osc.stop(); osc.disconnect(); } catch (e) {}
+    });
+    this.bgmOscillators = [];
 
     const t = this.ctx.currentTime;
     this.bgmGain.gain.cancelScheduledValues(t);
-    this.bgmGain.gain.setValueAtTime(0, t);
-    this.bgmGain.gain.linearRampToValueAtTime(0.18, t + 1.5);
+    this.bgmGain.gain.setValueAtTime(0.001, t);
+    this.bgmGain.gain.linearRampToValueAtTime(0.24, t + 1.2);
 
-    // 1. Deep Sub Drone (Root + Fifth: A1 55Hz & E2 82.4Hz)
-    const drone1 = this.ctx.createOscillator();
-    const drone2 = this.ctx.createOscillator();
-    const droneFilter = this.ctx.createBiquadFilter();
+    // 1. Deep Analog Sub-Bass Drone (A1 55Hz with slight detune)
+    const bass1 = this.ctx.createOscillator();
+    const bass2 = this.ctx.createOscillator();
+    const bassFilter = this.ctx.createBiquadFilter();
 
-    drone1.type = 'sawtooth';
-    drone1.frequency.setValueAtTime(55, t);
+    bass1.type = 'sawtooth';
+    bass1.frequency.setValueAtTime(55, t); // A1
 
-    drone2.type = 'triangle';
-    drone2.frequency.setValueAtTime(82.4, t);
+    bass2.type = 'triangle';
+    bass2.frequency.setValueAtTime(55.3, t); // slight analog detune
 
-    droneFilter.type = 'lowpass';
-    droneFilter.frequency.setValueAtTime(180, t);
+    bassFilter.type = 'lowpass';
+    bassFilter.frequency.setValueAtTime(160, t);
 
-    drone1.connect(droneFilter);
-    drone2.connect(droneFilter);
-    droneFilter.connect(this.bgmGain);
+    bass1.connect(bassFilter);
+    bass2.connect(bassFilter);
+    bassFilter.connect(this.bgmGain);
 
-    drone1.start(t);
-    drone2.start(t);
-    this.bgmOscillators.push(drone1, drone2);
+    bass1.start(t);
+    bass2.start(t);
+    this.bgmOscillators.push(bass1, bass2);
 
-    // 2. Cyberpunk Pentatonic Arpeggiator Loop
-    // Scale: A minor pentatonic (A2, C3, D3, E3, G3, A3)
-    const arpScale = [110, 130.81, 146.83, 164.81, 196.00, 220, 196.00, 164.81];
+    // 2. Atmospheric Cyber Pad (A3 220Hz & E4 329.63Hz with breathing filter)
+    const pad1 = this.ctx.createOscillator();
+    const pad2 = this.ctx.createOscillator();
+    const padFilter = this.ctx.createBiquadFilter();
+    const padGain = this.ctx.createGain();
+
+    pad1.type = 'triangle';
+    pad1.frequency.setValueAtTime(220, t); // A3
+
+    pad2.type = 'sine';
+    pad2.frequency.setValueAtTime(329.63, t); // E4
+
+    padFilter.type = 'lowpass';
+    padFilter.frequency.setValueAtTime(450, t);
+
+    padGain.gain.setValueAtTime(0.12, t);
+
+    pad1.connect(padFilter);
+    pad2.connect(padFilter);
+    padFilter.connect(padGain);
+    padGain.connect(this.bgmGain);
+
+    pad1.start(t);
+    pad2.start(t);
+    this.bgmOscillators.push(pad1, pad2);
+
+    // 3. Synthwave 16th-note Arpeggiator & Rhythmic Cyber Pulse
+    // A-minor progression: [A2, E3, A3, C4, E4, C4, A3, E3, F2, C3, F3, A3, C4, A3, F3, C3]
+    const arpNotes = [
+      110.00, 164.81, 220.00, 261.63, 329.63, 261.63, 220.00, 164.81,
+      87.31,  130.81, 174.61, 220.00, 261.63, 220.00, 174.61, 130.81
+    ];
     this.arpStep = 0;
 
     this.bgmInterval = setInterval(() => {
       if (!this.ctx || !this.isBgmActive || this.isMuted) return;
 
       const now = this.ctx.currentTime;
-      const freq = arpScale[this.arpStep % arpScale.length];
+      const step = this.arpStep % arpNotes.length;
+      const freq = arpNotes[step];
       this.arpStep++;
 
+      // Synth Pluck
       const arpOsc = this.ctx.createOscillator();
       const arpGain = this.ctx.createGain();
       const arpFilter = this.ctx.createBiquadFilter();
 
-      arpOsc.type = 'triangle';
+      arpOsc.type = 'sawtooth';
       arpOsc.frequency.setValueAtTime(freq, now);
 
-      arpFilter.type = 'bandpass';
-      arpFilter.frequency.setValueAtTime(freq * 1.5, now);
-      arpFilter.Q.setValueAtTime(2.5, now);
+      arpFilter.type = 'lowpass';
+      arpFilter.frequency.setValueAtTime(freq * 3.5, now);
+      arpFilter.frequency.exponentialRampToValueAtTime(freq * 0.8, now + 0.18);
+      arpFilter.Q.setValueAtTime(3, now);
 
       arpGain.gain.setValueAtTime(0, now);
-      arpGain.gain.linearRampToValueAtTime(0.08, now + 0.02);
-      arpGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+      arpGain.gain.linearRampToValueAtTime(0.06, now + 0.015);
+      arpGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
 
       arpOsc.connect(arpFilter);
       arpFilter.connect(arpGain);
       arpGain.connect(this.bgmGain);
 
       arpOsc.start(now);
-      arpOsc.stop(now + 0.28);
-    }, 280);
+      arpOsc.stop(now + 0.22);
+
+      // Subtle Cyber Kick Pulse on beats 0, 4, 8, 12
+      if (step % 4 === 0) {
+        const kickOsc = this.ctx.createOscillator();
+        const kickGain = this.ctx.createGain();
+
+        kickOsc.type = 'sine';
+        kickOsc.frequency.setValueAtTime(95, now);
+        kickOsc.frequency.exponentialRampToValueAtTime(38, now + 0.09);
+
+        kickGain.gain.setValueAtTime(0.12, now);
+        kickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
+
+        kickOsc.connect(kickGain);
+        kickGain.connect(this.bgmGain);
+
+        kickOsc.start(now);
+        kickOsc.stop(now + 0.1);
+      }
+    }, 220);
   }
 
   /**
@@ -162,15 +240,19 @@ class SoundEngine {
     if (this.bgmGain && this.ctx) {
       const t = this.ctx.currentTime;
       this.bgmGain.gain.cancelScheduledValues(t);
-      this.bgmGain.gain.linearRampToValueAtTime(0, t + 0.6);
+      this.bgmGain.gain.linearRampToValueAtTime(0.0001, t + 0.4);
     }
 
-    setTimeout(() => {
+    if (this.stopBgmTimeout) {
+      clearTimeout(this.stopBgmTimeout);
+    }
+    this.stopBgmTimeout = setTimeout(() => {
       this.bgmOscillators.forEach(osc => {
         try { osc.stop(); osc.disconnect(); } catch (e) {}
       });
       this.bgmOscillators = [];
-    }, 650);
+      this.stopBgmTimeout = null;
+    }, 450);
   }
 
   /**
