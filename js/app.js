@@ -145,6 +145,9 @@ class CyberTicTacToe {
         state.setGameType(selectedType);
         ui.updateGameTypeCards(selectedType);
         this.rebuildGameBoard();
+        if (['classic', 'infinity', 'blitz', 'grid4'].every(m => state.stats.modesPlayed && state.stats.modesPlayed.includes(m))) {
+          this.awardAchievement('ALL_MODES');
+        }
       });
     });
 
@@ -157,6 +160,9 @@ class CyberTicTacToe {
         state.setTheme(theme);
         ui.applyTheme(theme);
         ui.triggerGlitch();
+        if (['cyber', 'matrix', 'outrun', 'blood'].every(t => state.stats.themesTried && state.stats.themesTried.includes(t))) {
+          this.awardAchievement('THEME_COLLECTOR');
+        }
       });
     });
 
@@ -168,6 +174,9 @@ class CyberTicTacToe {
         const isCrt = state.toggleCrt();
         ui.applyCrt(isCrt);
         ui.triggerGlitch();
+        if (isCrt) {
+          this.awardAchievement('CRT_NOSTALGIA');
+        }
       });
     });
 
@@ -177,7 +186,10 @@ class CyberTicTacToe {
         e.stopPropagation();
         const isPlaying = sound.toggleBgm();
         ui.updateBgmUI(isPlaying);
-        if (isPlaying) sound.playClick();
+        if (isPlaying) {
+          sound.playClick();
+          this.awardAchievement('SYNTHWAVE_VIBE');
+        }
       });
     });
 
@@ -358,6 +370,9 @@ class CyberTicTacToe {
           sound.playReaction();
           p2p.sendReaction(text);
           ui.showReaction(text, false);
+          state.stats.p2pReactionsSent++;
+          state.saveStats();
+          this.awardAchievement('P2P_SIGNAL');
         }
       });
     });
@@ -365,6 +380,15 @@ class CyberTicTacToe {
     // Stats & Achievements Modal Handlers
     const openStats = () => {
       sound.playClick();
+      const passive = state.checkPassiveAchievements();
+      if (passive && passive.length > 0) {
+        passive.forEach((ach, index) => {
+          setTimeout(() => {
+            sound.playAchievement();
+            ui.showAchievementToast(ach);
+          }, index * 800 + 300);
+        });
+      }
       ui.showStatsModal(state);
     };
 
@@ -558,7 +582,10 @@ class CyberTicTacToe {
       isTie = true;
     }
 
-    const newlyUnlocked = state.recordGameOutcome(isWin, isTie, isLoss);
+    const newlyUnlocked = state.recordGameOutcome(isWin, isTie, isLoss, {
+      winningLine: result.line,
+      blitzRemaining: state.blitzTimeRemaining
+    });
     if (newlyUnlocked && newlyUnlocked.length > 0) {
       newlyUnlocked.forEach((ach, index) => {
         setTimeout(() => {
@@ -666,6 +693,17 @@ class CyberTicTacToe {
   }
 
   /**
+   * Triggers an achievement popup and audio notification
+   */
+  awardAchievement(id) {
+    const ach = state.triggerAchievement(id);
+    if (ach) {
+      sound.playAchievement();
+      ui.showAchievementToast(ach);
+    }
+  }
+
+  /**
    * Starts a new round, with optional side swapping for P2P mode
    */
   startNewRound(swapSides = false) {
@@ -678,6 +716,7 @@ class CyberTicTacToe {
     if (state.gameMode === 'p2p' && swapSides) {
       const newSymbol = state.swapP2PSymbol();
       ui.showToast(`🔄 СМЕНА СТОРОН: ТЕПЕРЬ ВЫ ( ${newSymbol} )`);
+      this.awardAchievement('P2P_REMATCH');
     }
 
     state.resetRound();
