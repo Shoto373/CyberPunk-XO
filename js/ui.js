@@ -81,6 +81,7 @@ class UIEngine {
     this.modalSymbol = document.getElementById('modal-symbol');
     this.modalTitle = document.getElementById('modal-title');
     this.modalSubtitle = document.getElementById('modal-subtitle');
+    this.modalUnlockedAchievements = document.getElementById('modal-unlocked-achievements');
     this.btnModalRematch = document.getElementById('btn-modal-rematch');
     this.btnModalStats = document.getElementById('btn-modal-stats');
     this.btnModalClose = document.getElementById('btn-modal-close');
@@ -426,7 +427,7 @@ class UIEngine {
     }, 500);
   }
 
-  showResultModal(result, gameMode, playerSymbol = null) {
+  showResultModal(result, gameMode, playerSymbol = null, newlyUnlocked = []) {
     if (result.status === 'win') {
       const isX = result.winner === 'X';
       const color = isX ? 'var(--neon-x)' : 'var(--neon-o)';
@@ -474,6 +475,27 @@ class UIEngine {
       }
       if (this.modalSubtitle) {
         this.modalSubtitle.textContent = 'Боевая ничья в раунде';
+      }
+    }
+
+    // Display newly unlocked achievements directly inside Victory Modal
+    if (this.modalUnlockedAchievements) {
+      if (newlyUnlocked && newlyUnlocked.length > 0) {
+        this.modalUnlockedAchievements.style.display = 'flex';
+        this.modalUnlockedAchievements.innerHTML = `
+          <div class="modal-ach-header">🏆 РАЗБЛОКИРОВАНО:</div>
+          <div class="modal-ach-items">
+            ${newlyUnlocked.map(ach => `
+              <div class="modal-ach-item">
+                <span class="modal-ach-icon">${ach.icon}</span>
+                <span class="modal-ach-title">${ach.title}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        this.modalUnlockedAchievements.style.display = 'none';
+        this.modalUnlockedAchievements.innerHTML = '';
       }
     }
 
@@ -718,6 +740,16 @@ class UIEngine {
     if (this.statStreak) this.statStreak.textContent = `${stats.currentStreak} 🔥`;
     if (this.statMaxStreak) this.statMaxStreak.textContent = stats.maxStreak;
 
+    this.renderAchievements(gameState);
+
+    this.statsModal.classList.add('open');
+    this.statsModal.setAttribute('aria-hidden', 'false');
+  }
+
+  /**
+   * Populates the achievements list DOM with current unlock states
+   */
+  renderAchievements(gameState) {
     const unlocked = gameState.achievements || [];
     if (this.achievementsUnlockedCount) {
       this.achievementsUnlockedCount.textContent = `${unlocked.length}/${ACHIEVEMENTS_LIST.length}`;
@@ -740,9 +772,6 @@ class UIEngine {
         `;
       }).join('');
     }
-
-    this.statsModal.classList.add('open');
-    this.statsModal.setAttribute('aria-hidden', 'false');
   }
 
   hideStatsModal() {

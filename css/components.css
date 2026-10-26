@@ -712,6 +712,59 @@
   margin-bottom: 1.8rem;
 }
 
+.modal-unlocked-achievements {
+  width: 100%;
+  margin-bottom: 1.2rem;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.15);
+  animation: modal-ach-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-ach-header {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--neon-gold);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.modal-ach-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.modal-ach-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--pill-radius);
+  padding: 4px 10px;
+}
+
+.modal-ach-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.modal-ach-title {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fff;
+}
+
 .modal-actions {
   width: 100%;
   display: flex;

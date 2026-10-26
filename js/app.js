@@ -29,6 +29,10 @@ class CyberTicTacToe {
     ui.applyCrt(state.isCrt);
     ui.updateBgmUI(sound.getBgmActive());
 
+    // Check passive milestones & render initial achievements list in DOM
+    state.checkPassiveAchievements();
+    ui.renderAchievements(state);
+
     // Build initial board
     this.rebuildGameBoard();
 
@@ -547,33 +551,6 @@ class CyberTicTacToe {
   handleGameEnd(result) {
     try {
       ui.clearGhostWarnings();
-      ui.updateScoreboard(state);
-
-      if (result.status === 'win') {
-        ui.drawStrikeLine(result.line, state.gridSize);
-        ui.triggerScreenShake();
-        ui.triggerGlitch();
-        sound.playWin();
-
-        try {
-          const boardRect = ui.boardContainer ? ui.boardContainer.getBoundingClientRect() : null;
-          const originX = boardRect ? boardRect.left + boardRect.width / 2 : window.innerWidth / 2;
-          const originY = boardRect ? boardRect.top + boardRect.height / 2 : window.innerHeight / 2;
-
-          particles.fireVictory(originX, originY);
-          setTimeout(() => particles.fireVictory(originX - 100, originY - 50), 180);
-          setTimeout(() => particles.fireVictory(originX + 100, originY - 50), 360);
-        } catch (pe) {
-          console.warn('Particle victory trigger:', pe);
-        }
-
-        ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol);
-      } else if (result.status === 'tie') {
-        ui.triggerScreenShake();
-        ui.triggerGlitch();
-        sound.playDraw();
-        ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol);
-      }
 
       // Record game outcome and check for achievements
       let isWin = false;
@@ -598,6 +575,36 @@ class CyberTicTacToe {
         winningLine: result.line,
         blitzRemaining: state.blitzTimeRemaining
       });
+
+      ui.updateScoreboard(state);
+      ui.renderAchievements(state);
+
+      if (result.status === 'win') {
+        ui.drawStrikeLine(result.line, state.gridSize);
+        ui.triggerScreenShake();
+        ui.triggerGlitch();
+        sound.playWin();
+
+        try {
+          const boardRect = ui.boardContainer ? ui.boardContainer.getBoundingClientRect() : null;
+          const originX = boardRect ? boardRect.left + boardRect.width / 2 : window.innerWidth / 2;
+          const originY = boardRect ? boardRect.top + boardRect.height / 2 : window.innerHeight / 2;
+
+          particles.fireVictory(originX, originY);
+          setTimeout(() => particles.fireVictory(originX - 100, originY - 50), 180);
+          setTimeout(() => particles.fireVictory(originX + 100, originY - 50), 360);
+        } catch (pe) {
+          console.warn('Particle victory trigger:', pe);
+        }
+
+        ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol, newlyUnlocked);
+      } else if (result.status === 'tie') {
+        ui.triggerScreenShake();
+        ui.triggerGlitch();
+        sound.playDraw();
+        ui.showResultModal(result, state.gameMode, state.p2pPlayerSymbol, newlyUnlocked);
+      }
+
       if (newlyUnlocked && newlyUnlocked.length > 0) {
         newlyUnlocked.forEach((ach, index) => {
           setTimeout(() => {
