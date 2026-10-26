@@ -744,6 +744,20 @@
   box-shadow: 0 0 35px var(--neon-x-glow);
 }
 
+.modal-btn-stats {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--neon-gold);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.modal-btn-stats:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: var(--neon-gold);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.3);
+  transform: translateY(-1px);
+}
+
 .modal-btn-close {
   background: transparent;
   color: var(--text-secondary);
@@ -1007,6 +1021,13 @@
 }
 
 /* Confident Modern Start Button */
+.menu-launch-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
 .btn-launch-game {
   width: 100%;
   padding: 15px;
@@ -1041,6 +1062,40 @@
 .btn-launch-game svg {
   width: 20px;
   height: 20px;
+  fill: currentColor;
+}
+
+.btn-menu-stats {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--neon-gold);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--pill-radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: all var(--transition-normal);
+}
+
+.btn-menu-stats:hover {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: var(--neon-gold);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-menu-stats svg {
+  width: 18px;
+  height: 18px;
   fill: currentColor;
 }
 

@@ -92,6 +92,8 @@ class UIEngine {
     // Stats & Achievements Elements
     this.btnOpenStats = document.getElementById('btn-open-stats');
     this.btnHudStats = document.getElementById('btn-hud-stats');
+    this.btnMenuStats = document.getElementById('btn-menu-stats');
+    this.btnModalStats = document.getElementById('btn-modal-stats');
     this.statsModal = document.getElementById('stats-modal');
     this.btnStatsClose = document.getElementById('btn-stats-close');
     this.btnStatsCloseX = document.getElementById('btn-stats-close-x');

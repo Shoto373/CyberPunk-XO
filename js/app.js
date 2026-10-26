@@ -394,6 +394,13 @@ class CyberTicTacToe {
 
     if (ui.btnOpenStats) ui.btnOpenStats.addEventListener('click', openStats);
     if (ui.btnHudStats) ui.btnHudStats.addEventListener('click', openStats);
+    if (ui.btnMenuStats) ui.btnMenuStats.addEventListener('click', openStats);
+    if (ui.btnModalStats) {
+      ui.btnModalStats.addEventListener('click', () => {
+        ui.hideResultModal();
+        openStats();
+      });
+    }
 
     if (ui.btnStatsClose) {
       ui.btnStatsClose.addEventListener('click', () => {
