@@ -1,6 +1,6 @@
 /**
- * P2P.JS - Serverless WebRTC Multiplayer Engine using PeerJS & BroadcastChannel Fallback
- * Allows two players to battle in real-time across devices via room codes or links.
+ * P2P.JS - Resilient Serverless Multiplayer Engine
+ * Hybrid Architecture: WebRTC PeerJS (across devices) + BroadcastChannel & Storage Event (instant local tabs)
  */
 
 class P2PManager {
@@ -11,17 +11,22 @@ class P2PManager {
     this.roomCode = null;
     this.isConnected = false;
     this.localPlayerSymbol = null; // 'X' for Host, 'O' for Guest
+    this.joinRetryTimer = null;
+    this.joinAttempts = 0;
 
-    // BroadcastChannel for cross-tab testing on the same machine
+    // Cross-tab communication channel
     this.broadcastChannel = null;
     if (typeof BroadcastChannel !== 'undefined') {
       try {
         this.broadcastChannel = new BroadcastChannel('cyber_xo_p2p_channel');
         this.setupBroadcastChannel();
       } catch (e) {
-        console.warn('BroadcastChannel not supported:', e);
+        console.warn('BroadcastChannel error:', e);
       }
     }
+
+    // LocalStorage fallback for cross-tab communication
+    window.addEventListener('storage', (e) => this.handleStorageEvent(e));
 
     // Callbacks
     this.onConnectedCallback = null;
@@ -31,9 +36,6 @@ class P2PManager {
     this.onErrorCallback = null;
   }
 
-  /**
-   * Generates a 6-character cyberpunk room code
-   */
   generateRoomCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
@@ -43,11 +45,8 @@ class P2PManager {
     return code;
   }
 
-  /**
-   * Builds Peer ID from room code to avoid collisions
-   */
   getPeerId(code) {
-    return `cxo-${code.toLowerCase().trim()}`;
+    return `cxo-v3-${code.toLowerCase().trim()}`;
   }
 
   /**
@@ -60,49 +59,52 @@ class P2PManager {
     this.roomCode = this.generateRoomCode();
     const peerId = this.getPeerId(this.roomCode);
 
-    if (onStatus) onStatus(`Инициализация комнаты: ${this.roomCode}...`);
+    if (onStatus) onStatus(`Создание комнаты ${this.roomCode}...`);
 
-    if (typeof Peer === 'undefined') {
-      // Fallback mode using BroadcastChannel
-      this.isConnected = true;
-      if (onStatus) onStatus(`Локальная комната готова: ${this.roomCode}`);
-      if (this.onConnectedCallback) this.onConnectedCallback(true, this.roomCode, 'X');
-      return this.roomCode;
-    }
+    // Broadcast host presence locally across tabs
+    this.broadcastLocal({ type: 'HOST_WAITING', room: this.roomCode });
+    this.setStorageRoom('HOST', this.roomCode);
 
-    try {
-      this.peer = new Peer(peerId, {
-        debug: 1,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
-          ]
-        }
-      });
+    // Initialize WebRTC PeerJS for remote connections
+    if (typeof Peer !== 'undefined') {
+      try {
+        this.peer = new Peer(peerId, {
+          debug: 0,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun.cloudflare.com:3478' }
+            ]
+          }
+        });
 
-      this.peer.on('open', (id) => {
-        if (onStatus) onStatus(`Комната ${this.roomCode} ждет соперника...`);
-      });
+        this.peer.on('open', () => {
+          if (!this.isConnected && onStatus) {
+            onStatus(`Комната ${this.roomCode} в сети! Ждем подключения...`);
+          }
+        });
 
-      this.peer.on('connection', (conn) => {
-        this.connection = conn;
-        this.setupConnection(true, onStatus);
-      });
+        this.peer.on('connection', (conn) => {
+          this.connection = conn;
+          this.setupConnection(true, onStatus);
+        });
 
-      this.peer.on('error', (err) => {
-        console.warn('Peer error:', err);
-        if (err.type === 'unavailable-id') {
-          // If code collision, retry with new code
-          this.createRoom(gameType, onStatus);
-        } else if (this.onErrorCallback) {
-          this.onErrorCallback(err.message || 'Ошибка сети WebRTC');
-        }
-      });
+        this.peer.on('error', (err) => {
+          console.warn('Peer host error:', err);
+          if (err.type === 'unavailable-id') {
+            this.createRoom(gameType, onStatus);
+          } else if (!this.isConnected) {
+            if (onStatus) onStatus(`Комната ${this.roomCode} готова (локальный режим активен).`);
+          }
+        });
 
-    } catch (e) {
-      console.error('Failed to init Peer:', e);
-      if (this.onErrorCallback) this.onErrorCallback('WebRTC недоступен. Используется локальный режим.');
+      } catch (e) {
+        console.warn('PeerJS init failed, using local tab mode:', e);
+        if (onStatus) onStatus(`Комната ${this.roomCode} готова локально.`);
+      }
+    } else {
+      if (onStatus) onStatus(`Комната ${this.roomCode} готова (локальные вкладки).`);
     }
 
     return this.roomCode;
@@ -112,51 +114,82 @@ class P2PManager {
    * Joins an existing room by code
    */
   joinRoom(code, onStatus) {
+    if (!code || !code.trim()) {
+      if (onStatus) onStatus('Введите код комнаты для входа!');
+      return;
+    }
+
     this.disconnect();
     this.isHost = false;
     this.localPlayerSymbol = 'O';
     this.roomCode = code.toUpperCase().trim();
     const targetPeerId = this.getPeerId(this.roomCode);
+    this.joinAttempts = 0;
 
     if (onStatus) onStatus(`Подключение к ${this.roomCode}...`);
 
-    if (typeof Peer === 'undefined') {
-      // Fallback BroadcastChannel
-      this.isConnected = true;
-      if (this.broadcastChannel) {
-        this.broadcastChannel.postMessage({ type: 'GUEST_JOINED', room: this.roomCode });
-      }
-      if (onStatus) onStatus(`Подключено к ${this.roomCode}!`);
-      if (this.onConnectedCallback) this.onConnectedCallback(false, this.roomCode, 'O');
-      return;
+    // 1. Instantly ping locally via BroadcastChannel & Storage Event
+    this.broadcastLocal({ type: 'GUEST_JOINING', room: this.roomCode });
+    this.setStorageRoom('GUEST_JOIN', this.roomCode);
+
+    // 2. Connect via WebRTC PeerJS for remote devices
+    if (typeof Peer !== 'undefined') {
+      const startPeerJoin = () => {
+        try {
+          this.peer = new Peer({
+            debug: 0,
+            config: {
+              iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun.cloudflare.com:3478' }
+              ]
+            }
+          });
+
+          this.peer.on('open', () => {
+            if (this.isConnected) return;
+            this.connectToHostPeer(targetPeerId, onStatus);
+          });
+
+          this.peer.on('error', (err) => {
+            console.warn('Peer join error:', err);
+            if (this.isConnected) return;
+
+            if (err.type === 'peer-unavailable') {
+              if (this.joinAttempts < 4) {
+                this.joinAttempts++;
+                if (onStatus) onStatus(`Поиск комнаты ${this.roomCode} (попытка ${this.joinAttempts + 1}/5)...`);
+                this.joinRetryTimer = setTimeout(() => {
+                  this.connectToHostPeer(targetPeerId, onStatus);
+                }, 1200);
+              } else {
+                if (onStatus) onStatus(`Комната ${this.roomCode} не найдена. Проверьте код.`);
+                if (this.onErrorCallback) {
+                  this.onErrorCallback(`Комната ${this.roomCode} не найдена. Убедитесь, что хост создал её.`);
+                }
+              }
+            } else if (!this.isConnected) {
+              if (onStatus) onStatus(`Сетевая задержка. Проверьте соединение или код ${this.roomCode}`);
+            }
+          });
+
+        } catch (e) {
+          console.warn('Peer join init error:', e);
+        }
+      };
+
+      startPeerJoin();
     }
+  }
 
+  connectToHostPeer(targetPeerId, onStatus) {
+    if (!this.peer || this.isConnected) return;
     try {
-      this.peer = new Peer({
-        debug: 1,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
-          ]
-        }
-      });
-
-      this.peer.on('open', () => {
-        this.connection = this.peer.connect(targetPeerId, { reliable: true });
-        this.setupConnection(false, onStatus);
-      });
-
-      this.peer.on('error', (err) => {
-        console.warn('Peer join error:', err);
-        if (this.onErrorCallback) {
-          this.onErrorCallback('Не удалось найти комнату ' + this.roomCode);
-        }
-      });
-
+      this.connection = this.peer.connect(targetPeerId, { reliable: true });
+      this.setupConnection(false, onStatus);
     } catch (e) {
-      console.error('Join room failed:', e);
-      if (this.onErrorCallback) this.onErrorCallback('Ошибка подключения WebRTC');
+      console.warn('Failed to connect to peer:', e);
     }
   }
 
@@ -165,7 +198,11 @@ class P2PManager {
 
     this.connection.on('open', () => {
       this.isConnected = true;
-      if (onStatus) onStatus('Соперник подключился! Бой начинается.');
+      if (this.joinRetryTimer) {
+        clearTimeout(this.joinRetryTimer);
+        this.joinRetryTimer = null;
+      }
+      if (onStatus) onStatus('Соперник подключен! Бой начинается.');
       if (this.onConnectedCallback) {
         this.onConnectedCallback(isHost, this.roomCode, this.localPlayerSymbol);
       }
@@ -185,20 +222,65 @@ class P2PManager {
     });
   }
 
+  /**
+   * BroadcastChannel local messaging between tabs
+   */
   setupBroadcastChannel() {
     this.broadcastChannel.onmessage = (e) => {
-      const data = e.data;
-      if (!data) return;
-
-      if (this.isHost && data.type === 'GUEST_JOINED' && data.room === this.roomCode) {
-        this.isConnected = true;
-        if (this.onConnectedCallback) {
-          this.onConnectedCallback(true, this.roomCode, 'X');
-        }
-      }
-
-      this.handleIncomingData(data);
+      this.processLocalMessage(e.data);
     };
+  }
+
+  broadcastLocal(payload) {
+    if (this.broadcastChannel) {
+      try { this.broadcastChannel.postMessage(payload); } catch (e) {}
+    }
+  }
+
+  setStorageRoom(type, room) {
+    try {
+      localStorage.setItem('cyber_xo_p2p_sync', JSON.stringify({ type, room, timestamp: Date.now() }));
+    } catch (e) {}
+  }
+
+  handleStorageEvent(e) {
+    if (e.key === 'cyber_xo_p2p_sync' && e.newValue) {
+      try {
+        const data = JSON.parse(e.newValue);
+        this.processLocalMessage(data);
+      } catch (err) {}
+    }
+  }
+
+  processLocalMessage(data) {
+    if (!data || !this.roomCode) return;
+
+    // Host receives guest joining request on same room
+    if (this.isHost && data.type === 'GUEST_JOINING' && data.room === this.roomCode) {
+      this.isConnected = true;
+      this.broadcastLocal({ type: 'HOST_ACCEPT', room: this.roomCode });
+      this.setStorageRoom('HOST_ACCEPT', this.roomCode);
+
+      if (this.onConnectedCallback) {
+        this.onConnectedCallback(true, this.roomCode, 'X');
+      }
+      return;
+    }
+
+    // Guest receives host acceptance
+    if (!this.isHost && data.type === 'HOST_ACCEPT' && data.room === this.roomCode) {
+      this.isConnected = true;
+      if (this.joinRetryTimer) {
+        clearTimeout(this.joinRetryTimer);
+        this.joinRetryTimer = null;
+      }
+      if (this.onConnectedCallback) {
+        this.onConnectedCallback(false, this.roomCode, 'O');
+      }
+      return;
+    }
+
+    this.handleIncomingData(data);
   }
 
   handleIncomingData(data) {
@@ -218,21 +300,20 @@ class P2PManager {
   }
 
   sendMove(index) {
-    const payload = { type: 'MOVE', index };
+    const payload = { type: 'MOVE', index, room: this.roomCode };
     if (this.connection && this.connection.open) {
       this.connection.send(payload);
-    } else if (this.broadcastChannel) {
-      this.broadcastChannel.postMessage(payload);
     }
+    this.broadcastLocal(payload);
+    this.setStorageRoom('MOVE', this.roomCode);
   }
 
   sendRematch() {
-    const payload = { type: 'REMATCH' };
+    const payload = { type: 'REMATCH', room: this.roomCode };
     if (this.connection && this.connection.open) {
       this.connection.send(payload);
-    } else if (this.broadcastChannel) {
-      this.broadcastChannel.postMessage(payload);
     }
+    this.broadcastLocal(payload);
   }
 
   handleDisconnect() {
@@ -241,6 +322,10 @@ class P2PManager {
   }
 
   disconnect() {
+    if (this.joinRetryTimer) {
+      clearTimeout(this.joinRetryTimer);
+      this.joinRetryTimer = null;
+    }
     if (this.connection) {
       try {
         this.connection.send({ type: 'DISCONNECT' });
@@ -256,22 +341,18 @@ class P2PManager {
     this.roomCode = null;
   }
 
-  /**
-   * Generates full share URL
-   */
   getShareUrl(roomCode = this.roomCode) {
     const base = window.location.origin + window.location.pathname;
     return `${base}?room=${roomCode}`;
   }
 
-  /**
-   * Copies share link to clipboard
-   */
   async copyShareLink(roomCode = this.roomCode) {
     const url = this.getShareUrl(roomCode);
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(url);
-      return true;
+      try {
+        await navigator.clipboard.writeText(url);
+        return true;
+      } catch (e) {}
     }
     return false;
   }

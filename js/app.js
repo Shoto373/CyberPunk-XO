@@ -150,6 +150,13 @@ class CyberTicTacToe {
     if (ui.btnStartGame) {
       ui.btnStartGame.addEventListener('click', () => {
         sound.playClick();
+        if (state.gameMode === 'p2p' && !p2p.isConnected) {
+          if (ui.p2pStatusText) {
+            ui.p2pStatusText.textContent = 'Создайте комнату или введите код для входа!';
+          }
+          if (ui.p2pPanel) ui.p2pPanel.classList.add('visible');
+          return;
+        }
         this.startNewRound();
         ui.showGameScreen();
       });
@@ -234,6 +241,9 @@ class CyberTicTacToe {
           p2p.joinRoom(code, (status) => {
             if (ui.p2pStatusText) ui.p2pStatusText.textContent = status;
           });
+        } else {
+          sound.playClick();
+          if (ui.p2pStatusText) ui.p2pStatusText.textContent = 'Введите код комнаты для входа!';
         }
       });
     }

@@ -19,7 +19,8 @@ const STATIC_ASSETS = [
   './js/audio.js',
   './js/particles.js',
   './js/ui.js',
-  './js/p2p.js'
+  './js/p2p.js',
+  './js/peerjs.min.js'
 ];
 
 self.addEventListener('install', (event) => {
@@ -59,7 +60,8 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        if (event.request.headers.get('accept').includes('text/html')) {
+        const accept = event.request.headers.get('accept');
+        if (accept && accept.includes('text/html')) {
           return caches.match('./index.html');
         }
       });
